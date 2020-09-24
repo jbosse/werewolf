@@ -7,7 +7,7 @@ defmodule WerewolfWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_werewolf_key",
-    signing_salt: "zTzTW9dJ"
+    signing_salt: "LE1etumc"
   ]
 
   socket "/socket", WerewolfWeb.UserSocket,

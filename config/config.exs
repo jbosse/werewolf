@@ -10,10 +10,10 @@ use Mix.Config
 # Configures the endpoint
 config :werewolf, WerewolfWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "3GOtyvMmEfvwGTF47YiYS2iZmgwfIKGH2sQXlcW8hmy2A15uM+WgRKiPyQbH7HJ3",
+  secret_key_base: "iAV72Wt+dUZ+71JORReei+KMRZJycQpfPktXO81woj2kJ7ZzVse4QdnCfYSsYxe7",
   render_errors: [view: WerewolfWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: Werewolf.PubSub,
-  live_view: [signing_salt: "9FpQL/SY"]
+  live_view: [signing_salt: "YlnlLBQr"]
 
 # Configures Elixir's Logger
 config :logger, :console,
