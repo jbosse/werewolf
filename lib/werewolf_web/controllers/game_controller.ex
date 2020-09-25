@@ -6,7 +6,10 @@ defmodule WerewolfWeb.GameController do
     render(conn, "index.html")
   end
 
-  def create(conn, _params) do
-    redirect(conn, to: Routes.game_path(conn, :show, "snazzy-jet-lab"))
+  @spec create(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def create(conn, %{"screen_name" => screen_name}) do
+    game = Werewolf.Game.new(screen_name)
+    Werewolf.GameStore.save(game)
+    redirect(conn, to: Routes.game_path(conn, :show, game.code))
   end
 end

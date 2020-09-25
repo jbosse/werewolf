@@ -12,9 +12,10 @@ defmodule Werewolf.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Werewolf.PubSub},
       # Start the Endpoint (http/https)
-      WerewolfWeb.Endpoint
+      WerewolfWeb.Endpoint,
       # Start a worker by calling: Werewolf.Worker.start_link(arg)
       # {Werewolf.Worker, arg}
+      Werewolf.GameStore
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
