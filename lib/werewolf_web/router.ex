@@ -18,6 +18,9 @@ defmodule WerewolfWeb.Router do
     pipe_through :browser
 
     live "/", PageLive, :index
+    get "/games", GameController, :index
+    post "/games", GameController, :create
+    live "/games/:game_name", GameLive, :show
   end
 
   # Other scopes may use custom stacks.

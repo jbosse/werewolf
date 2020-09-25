@@ -1,0 +1,6 @@
+<p>To begin a new game, enter your screen name an click "Create a Game".</p>
+<%= form_for @conn, Routes.game_path(@conn, :create), [], fn _ -> %>
+<label for="screenname">Screen Name</label>
+<input id="screenname" name="screenname" type="text"/>
+<button type="submit">Create a Game</button>
+<% end %>
