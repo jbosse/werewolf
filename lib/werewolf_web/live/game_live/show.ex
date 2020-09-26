@@ -13,12 +13,14 @@ defmodule WerewolfWeb.GameLive.Show do
   end
 
   @impl true
-  def mount(%{"name" => name}, %{"session_id" => session_id}, socket) do
-    IO.inspect(session_id)
-    Phoenix.PubSub.subscribe(PubSub, "game:" <> name)
-    {:ok, _} = Presence.track(self(), "game:" <> name, session_id, %{})
+  def mount(%{"code" => code}, %{"session_id" => session_id}, socket) do
+    topic = "game:" <> code
+    if socket |> connected?, do: GameStore.subscribe(code)
 
-    with {:ok, game} <- GameStore.get(name) do
+    Phoenix.PubSub.subscribe(PubSub, topic)
+    {:ok, _} = Presence.track(self(), topic, session_id, %{})
+
+    with {:ok, game} <- GameStore.get(code) do
       {:ok,
        assign(socket,
          game: game,
@@ -39,6 +41,10 @@ defmodule WerewolfWeb.GameLive.Show do
     {:noreply,
      socket
      |> assign(connected_uuids: list_present(socket))}
+  end
+
+  def handle_info({:game_saved, game}, socket) do
+    {:noreply, socket |> update(:game, fn _ -> game end)}
   end
 
   @impl true
