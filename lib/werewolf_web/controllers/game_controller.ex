@@ -7,8 +7,8 @@ defmodule WerewolfWeb.GameController do
   end
 
   @spec create(Plug.Conn.t(), map) :: Plug.Conn.t()
-  def create(conn, %{"screen_name" => screen_name}) do
-    game = Werewolf.Game.new(screen_name)
+  def create(conn, _params) do
+    game = Werewolf.Game.new()
     Werewolf.GameStore.save(game)
     redirect(conn, to: Routes.game_path(conn, :show, game.code))
   end

@@ -7,10 +7,10 @@ defmodule Werewolf.Game do
 
   alias Werewolf.Game
 
-  def new(player) do
+  def new() do
     %Game{
       code: code(),
-      players: [player]
+      players: []
     }
   end
 

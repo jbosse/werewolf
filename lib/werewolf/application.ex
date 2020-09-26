@@ -11,11 +11,14 @@ defmodule Werewolf.Application do
       WerewolfWeb.Telemetry,
       # Start the PubSub system
       {Phoenix.PubSub, name: Werewolf.PubSub},
+      # Start our Presence module.
+      WerewolfWeb.Presence,
       # Start the Endpoint (http/https)
       WerewolfWeb.Endpoint,
       # Start a worker by calling: Werewolf.Worker.start_link(arg)
       # {Werewolf.Worker, arg}
-      Werewolf.GameStore
+      Werewolf.GameStore,
+      Werewolf.PlayerStore
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

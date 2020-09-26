@@ -1,7 +1,0 @@
-<h3><%= @game.code %></h3>
-<ol
-<%= for player <- @game.players do %>
-  <li><%= player %></l>
-<% end %>
-</ol>
-<%= @uri |> EQRCode.encode() |> EQRCode.svg() |> raw() %>
