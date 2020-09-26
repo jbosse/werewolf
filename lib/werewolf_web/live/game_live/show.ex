@@ -1,8 +1,7 @@
-defmodule WerewolfWeb.GameLive do
+defmodule WerewolfWeb.GameLive.Show do
   use WerewolfWeb, :live_view
 
   alias Werewolf.GameStore
-  alias Werewolf.PlayerStore
   alias Werewolf.Game
   alias Werewolf.Player
   alias Werewolf.PubSub
@@ -10,7 +9,7 @@ defmodule WerewolfWeb.GameLive do
   alias Phoenix.Socket.Broadcast
 
   def render(assigns) do
-    WerewolfWeb.GameView.render("game_live.html", assigns)
+    WerewolfWeb.GameView.render("show.html", assigns)
   end
 
   @impl true
@@ -24,8 +23,7 @@ defmodule WerewolfWeb.GameLive do
        assign(socket,
          game: game,
          session_id: session_id,
-         connected_uuids: [session_id],
-         may_join: may_join(session_id, game.players)
+         connected_uuids: [session_id]
        )}
     else
       _ ->

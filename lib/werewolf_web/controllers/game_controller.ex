@@ -10,6 +10,6 @@ defmodule WerewolfWeb.GameController do
   def create(conn, _params) do
     game = Werewolf.Game.new()
     Werewolf.GameStore.save(game)
-    redirect(conn, to: Routes.game_path(conn, :show, game.code))
+    redirect(conn, to: Routes.game_show_path(conn, :show, game.code))
   end
 end

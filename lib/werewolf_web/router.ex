@@ -21,7 +21,7 @@ defmodule WerewolfWeb.Router do
     live "/", PageLive, :index
     get "/games", GameController, :index
     post "/games", GameController, :create
-    live "/games/:name", GameLive, :show
+    live "/games/:name", GameLive.Show, :show
   end
 
   # Other scopes may use custom stacks.

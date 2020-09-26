@@ -1,11 +1,9 @@
 <h3><%= @game.code %></h3>
-<ol>
+<section class="players">
   <%= for player <- @game.players do %>
-    <li class="<%= player_css(@session_id, player) %>">
-      <%= player.screen_name %>
-    </li>
+    <%= live_component(@socket, WerewolfWeb.GameLive.PlayerComponent, id: player.uuid, session_id: @session_id, player: player) %>
   <% end %>
-</ol>
+</section>
 <%= if may_join(@session_id, @game.players)  do %>
   <%= f = form_for :player, "#", [phx_submit: "join_game"] %>
   <%= label f, :screen_name %>
