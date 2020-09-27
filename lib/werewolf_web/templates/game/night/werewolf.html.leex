@@ -1,0 +1,13 @@
+<p><strong>You are a werewolf.</strong></p>
+<h3>Dinner Menu</h3>
+<p>Please select your meal</p>
+<section class="players">
+  <%= for player <- @game.players do %>
+    <%= if @session_id != player.uuid && player.role != :werewolf do %>
+      <div>
+        <strong><%= player.screen_name %></strong>
+        <a>Eat</a>
+      </div>
+    <% end %>
+  <% end %>
+</section>

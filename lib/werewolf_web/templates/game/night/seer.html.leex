@@ -1,0 +1,12 @@
+<p><strong>You are a seer.</strong></p>
+<p>Place the crystal of sight under someone's bed to see if they hide the blood of the wolf.</p>
+<section class="players">
+  <%= for player <- @game.players do %>
+    <%= if @session_id != player.uuid && player.role != :seer do %>
+      <div>
+        <strong><%= player.screen_name %></strong>
+        <a>Divine</a>
+      </div>
+    <% end %>
+  <% end %>
+</section>

@@ -1,39 +1,34 @@
-<h3><%= @game.code %></h3>
-<%= if @game.state == :started do %>
-  <strong>Started</strong>
-<% end %>
-<%= if @game.state == :night do %>
-  <%= if get_role(@session_id, @game) == :werewolf do %>
-    <p><strong>You are a werewolf.</strong></p>
-    <p>Select a someone for a delicious feast.</p>
-  <% end %>
-  <%= if get_role(@session_id, @game) == :seer do %>
-    <p><strong>You are a seer.</strong></p>
-    <p>Place the crystal of sight under someone's bed to see if they hide the blood of the wolf.</p>
-  <% end %>
-  <%= if get_role(@session_id, @game) == :doctor do %>
-    <p><strong>You are a doctor.</strong></p>
-    <p>Give the potion of protection to the one you feel is most in danger.</p>
-  <% end %>
-  <%= if get_role(@session_id, @game) == :villager do %>
-    <p><strong>You are a villager.</strong></p>
-    <p>Pray you survive the night</p>
-  <% end %>
-<% end %>
-<section class="players">
-  <%= for player <- @game.players do %>
-    <%= live_component(@socket, WerewolfWeb.GameLive.PlayerComponent, id: player.uuid, session_id: @session_id, player: player) %>
-  <% end %>
-</section>
-<%= if may_join(@session_id, @game.players)  do %>
-  <%= f = form_for :player, "#", [phx_submit: "join_game"] %>
-  <%= label f, :screen_name %>
-  <%= text_input f, :screen_name %>
-  <%= submit "Join Game" %>
-</form>
+<%= if @game.state == :not_started do %>
+  <section class="players">
+    <%= for player <- @game.players do %>
+      <%= live_component(@socket, WerewolfWeb.GameLive.PlayerComponent, id: player.uuid, session_id: @session_id, player: player) %>
+    <% end %>
+  </section>
+  <%= if may_join(@session_id, @game.players)  do %>
+    <%= f = form_for :player, "#", [phx_submit: "join_game"] %>
+    <%= label f, :screen_name %>
+    <%= text_input f, :screen_name %>
+    <%= submit "Join Game" %>
+  </form>
+  <div>To join, use code <%= @game.code %></div>
 <% end %>
 <%= if may_begin(@session_id, @game) do %>
   <button phx-click="begin_game">Begin Game</button>
+<% end %>
+<% end %>
+<%= if @game.state == :night do %>
+  <%= if get_role(@session_id, @game) == :werewolf do %>
+    <%= live_component(@socket, WerewolfWeb.GameLive.Night.WerewolfComponent, session_id: @session_id, game: @game) %>
+  <% end %>
+  <%= if get_role(@session_id, @game) == :seer do %>
+    <%= live_component(@socket, WerewolfWeb.GameLive.Night.SeerComponent, session_id: @session_id, game: @game) %>
+  <% end %>
+  <%= if get_role(@session_id, @game) == :doctor do %>
+    <%= live_component(@socket, WerewolfWeb.GameLive.Night.DoctorComponent, session_id: @session_id, game: @game) %>
+  <% end %>
+  <%= if get_role(@session_id, @game) == :villager do %>
+    <%= live_component(@socket, WerewolfWeb.GameLive.Night.VillagerComponent, session_id: @session_id, game: @game) %>
+  <% end %>
 <% end %>
 <!--
 <p>

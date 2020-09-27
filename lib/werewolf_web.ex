@@ -31,6 +31,7 @@ defmodule WerewolfWeb do
     quote do
       use Phoenix.View,
         root: "lib/werewolf_web/templates",
+        pattern: "**/*",
         namespace: WerewolfWeb
 
       # Import convenience functions from controllers

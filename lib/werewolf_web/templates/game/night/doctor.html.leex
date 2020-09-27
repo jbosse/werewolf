@@ -1,0 +1,12 @@
+<p><strong>You are a doctor.</strong></p>
+<p>Give the potion of protection to the one you feel is most in danger.</p>
+<section class="players">
+  <%= for player <- @game.players do %>
+    <%= if @session_id != player.uuid && player.role != :doctor do %>
+      <div>
+        <strong><%= player.screen_name %></strong>
+        <a>Protect</a>
+      </div>
+    <% end %>
+  <% end %>
+</section>
