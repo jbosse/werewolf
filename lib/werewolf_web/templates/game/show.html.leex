@@ -11,3 +11,6 @@
   <%= submit "Join Game" %>
 </form>
 <% end %>
+<%= if may_begin(@session_id, @game) do %>
+  <button>Begin Game</button>
+<% end %>

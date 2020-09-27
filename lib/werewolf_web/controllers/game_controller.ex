@@ -8,7 +8,8 @@ defmodule WerewolfWeb.GameController do
 
   @spec create(Plug.Conn.t(), map) :: Plug.Conn.t()
   def create(conn, _params) do
-    game = Werewolf.Game.new()
+    session_id = Plug.Conn.get_session(conn, :session_id)
+    game = Werewolf.Game.new(session_id)
     Werewolf.GameStore.save(game)
     redirect(conn, to: Routes.game_show_path(conn, :show, game.code))
   end

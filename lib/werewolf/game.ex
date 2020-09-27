@@ -1,5 +1,6 @@
 defmodule Werewolf.Game do
   defstruct code: nil,
+            host_id: nil,
             players: [],
             state: :not_started
 
@@ -7,9 +8,10 @@ defmodule Werewolf.Game do
 
   alias Werewolf.Game
 
-  def new() do
+  def new(host_id) do
     %Game{
       code: code(),
+      host_id: host_id,
       players: []
     }
   end
