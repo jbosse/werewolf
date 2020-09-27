@@ -1,0 +1,7 @@
+<p><strong>You are a doctor.</strong></p>
+<%= live_component(
+  @socket, WerewolfWeb.GameLive.Day.TribunalComponent,
+  id: "tribunal:" <> @session_id,
+  session_id: @session_id,
+  game: @game,
+  role: :doctor) %>

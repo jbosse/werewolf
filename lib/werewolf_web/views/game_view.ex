@@ -39,4 +39,25 @@ defmodule WerewolfWeb.GameView do
   defp get_player(_session_id, []), do: nil
   defp get_player(session_id, [%Player{:uuid => session_id} = player | _]), do: player
   defp get_player(session_id, [_ | players]), do: get_player(session_id, players)
+
+  def may_kill(session_id, game) do
+    case Enum.find(game.werewolf_votes, fn {id, _} -> session_id == id end) do
+      nil -> true
+      _ -> false
+    end
+  end
+
+  def may_vote(session_id, game) do
+    case Enum.find(game.village_votes, fn {id, _} -> session_id == id end) do
+      nil -> true
+      _ -> false
+    end
+  end
+
+  def is_dead(session_id, game) do
+    case session_id |> get_player(game.players) do
+      nil -> true
+      player -> player.state == :dead
+    end
+  end
 end

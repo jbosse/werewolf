@@ -16,19 +16,50 @@
   <button phx-click="begin_game">Begin Game</button>
 <% end %>
 <% end %>
-<%= if @game.state == :night do %>
-  <%= if get_role(@session_id, @game) == :werewolf do %>
-    <%= live_component(@socket, WerewolfWeb.GameLive.Night.WerewolfComponent, session_id: @session_id, game: @game) %>
+<%= if @game.winner == nil do %>
+  <%= if @game.state == :night do %>
+    <%= if is_dead(@session_id, @game) do %>
+      <p>Night has come, well except for you. You are dead.</p>
+    <% else %>
+      <%= if get_role(@session_id, @game) == :werewolf do %>
+        <%= live_component(@socket, WerewolfWeb.GameLive.Night.WerewolfComponent, id: "werewolf:" <> @session_id, session_id: @session_id, game: @game) %>
+      <% end %>
+      <%= if get_role(@session_id, @game) == :seer do %>
+        <%= live_component(@socket, WerewolfWeb.GameLive.Night.SeerComponent, id: "seer:" <> @session_id, session_id: @session_id, game: @game) %>
+      <% end %>
+      <%= if get_role(@session_id, @game) == :doctor do %>
+        <%= live_component(@socket, WerewolfWeb.GameLive.Night.DoctorComponent, id: "doctor:" <> @session_id, session_id: @session_id, game: @game) %>
+      <% end %>
+      <%= if get_role(@session_id, @game) == :villager do %>
+        <%= live_component(@socket, WerewolfWeb.GameLive.Night.VillagerComponent, id: "villager:" <> @session_id, session_id: @session_id, game: @game) %>
+      <% end %>
+    <% end %>
   <% end %>
-  <%= if get_role(@session_id, @game) == :seer do %>
-    <%= live_component(@socket, WerewolfWeb.GameLive.Night.SeerComponent, session_id: @session_id, game: @game) %>
+  <%= if @game.state == :day do %>
+    <%= if is_dead(@session_id, @game) do %>
+      <p>Morning has come, well except for you. You are dead.</p>
+    <% else %>
+      <p>Morning has come.</p>
+      <%= if @game.werewolves_eat == @game.doctor_heals do %>
+        <strong>Someone has been saved!</strong>
+      <% end %>
+      <%= if get_role(@session_id, @game) == :werewolf do %>
+        <%= live_component(@socket, WerewolfWeb.GameLive.Day.WerewolfComponent, id: "werewolf:" <> @session_id, session_id: @session_id, game: @game) %>
+      <% end %>
+      <%= if get_role(@session_id, @game) == :seer do %>
+        <%= live_component(@socket, WerewolfWeb.GameLive.Day.SeerComponent, id: "seer:" <> @session_id, session_id: @session_id, game: @game) %>
+      <% end %>
+      <%= if get_role(@session_id, @game) == :doctor do %>
+        <%= live_component(@socket, WerewolfWeb.GameLive.Day.DoctorComponent, id: "doctor:" <> @session_id, session_id: @session_id, game: @game) %>
+      <% end %>
+      <%= if get_role(@session_id, @game) == :villager do %>
+        <%= live_component(@socket, WerewolfWeb.GameLive.Day.VillagerComponent, id: "villager:" <> @session_id, session_id: @session_id, game: @game) %>
+      <% end %>
+    <% end %>
   <% end %>
-  <%= if get_role(@session_id, @game) == :doctor do %>
-    <%= live_component(@socket, WerewolfWeb.GameLive.Night.DoctorComponent, session_id: @session_id, game: @game) %>
-  <% end %>
-  <%= if get_role(@session_id, @game) == :villager do %>
-    <%= live_component(@socket, WerewolfWeb.GameLive.Night.VillagerComponent, session_id: @session_id, game: @game) %>
-  <% end %>
+<% else %>
+  <%= @game.winner %> win!
+  <a href="/games">New game</a>
 <% end %>
 <!--
 <p>

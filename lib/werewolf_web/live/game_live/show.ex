@@ -65,10 +65,73 @@ defmodule WerewolfWeb.GameLive.Show do
     {:noreply, assign(socket, game: new_game, may_join: false)}
   end
 
+  @impl true
+  def handle_event("mark", %{"session-id" => session_id, "player-id" => player_id}, socket) do
+    game = socket.assigns.game
+
+    new_game =
+      %Game{game | werewolf_votes: [{session_id, player_id}]}
+      |> check_for_death()
+      |> check_for_end_of_round()
+      |> check_for_winner()
+
+    GameStore.save(new_game)
+    {:noreply, assign(socket, game: new_game, may_join: false)}
+  end
+
+  @impl true
+  def handle_event("protect", %{"player-id" => player_id}, socket) do
+    game = socket.assigns.game
+
+    new_game =
+      %Game{game | doctor_heals: player_id}
+      |> check_for_end_of_round()
+      |> check_for_winner()
+
+    GameStore.save(new_game)
+    {:noreply, assign(socket, game: new_game, may_join: false)}
+  end
+
+  @impl true
+  def handle_event("divine", %{"player-id" => player_id}, socket) do
+    game = socket.assigns.game
+
+    new_game =
+      %Game{game | seer_sees: player_id}
+      |> divine_players()
+      |> check_for_end_of_round()
+      |> check_for_winner()
+
+    GameStore.save(new_game)
+    {:noreply, assign(socket, game: new_game, may_join: false)}
+  end
+
+  @impl true
+  def handle_event("vote", %{"session-id" => session_id, "player-id" => player_id}, socket) do
+    game = socket.assigns.game
+
+    new_game =
+      %Game{game | village_votes: [{session_id, player_id} | game.village_votes]}
+      |> check_for_end_of_day()
+
+    GameStore.save(new_game)
+    {:noreply, assign(socket, game: new_game, may_join: false)}
+  end
+
   defp list_present(socket) do
     Presence.list("game:" <> socket.assigns.game.code)
     # Phoenix Presence provides nice metadata, but we don't need it.
     |> Enum.map(fn {uuid, _} -> uuid end)
+  end
+
+  defp check_for_end_of_day(game) do
+    number_of_villagers = Enum.count(game.players, fn p -> p.state == :alive end)
+    number_of_votes = Enum.count(game.village_votes)
+
+    cond do
+      number_of_villagers == number_of_votes -> kill_werewolf(game)
+      true -> game
+    end
   end
 
   defp may_join(_session_id, players) when length(players) == 15, do: false
@@ -87,5 +150,135 @@ defmodule WerewolfWeb.GameLive.Show do
       |> Enum.map(fn {role, player} -> %Player{player | role: role} end)
 
     %Game{game | state: :night, players: players}
+  end
+
+  defp check_for_death(game) do
+    number_of_werewolves = Enum.count(game.players, fn p -> p.role == :werewolf end)
+    number_of_werewolf_votes = Enum.count(game.werewolf_votes)
+
+    cond do
+      number_of_werewolves == number_of_werewolf_votes -> kill_villager(game)
+      true -> game
+    end
+  end
+
+  defp kill_villager(game) do
+    votes = game.werewolf_votes
+    tally = Enum.reduce(votes, %{}, fn {_, uuid}, acc -> Map.update(acc, uuid, 1, &(&1 + 1)) end)
+
+    {winner, _} =
+      Enum.reduce(tally, {:a, 0}, fn {k, v}, {acc_k, acc_v} ->
+        cond do
+          v > acc_v -> {k, v}
+          true -> {acc_k, acc_v}
+        end
+      end)
+
+    %Game{game | werewolves_eat: winner}
+  end
+
+  defp kill_werewolf(game) do
+    votes = game.village_votes
+    tally = Enum.reduce(votes, %{}, fn {_, uuid}, acc -> Map.update(acc, uuid, 1, &(&1 + 1)) end)
+
+    {winner, _} =
+      Enum.reduce(tally, {:a, 0}, fn {k, v}, {acc_k, acc_v} ->
+        cond do
+          v > acc_v -> {k, v}
+          true -> {acc_k, acc_v}
+        end
+      end)
+
+    players =
+      game.players
+      |> Enum.map(fn p ->
+        cond do
+          p.uuid == winner -> Map.put(p, :state, :dead)
+          true -> p
+        end
+      end)
+
+    %Game{
+      game
+      | state: :night,
+        players: players,
+        villagers_kill: winner,
+        werewolves_eat: nil,
+        werewolf_votes: [],
+        village_votes: [],
+        doctor_heals: nil,
+        seer_sees: nil
+    }
+  end
+
+  defp check_for_end_of_round(game) do
+    doctor_had_turn = game.doctor_heals != nil || get_doctor(game).state == :dead
+    seer_had_turn = game.seer_sees != nil || get_seer(game).state == :dead
+    werewolves_voted = game.werewolves_eat != nil
+
+    cond do
+      doctor_had_turn && seer_had_turn && werewolves_voted ->
+        players =
+          game.players
+          |> Enum.map(fn p ->
+            cond do
+              p.uuid == game.werewolves_eat && game.doctor_heals != p.uuid ->
+                Map.put(p, :state, :dead)
+
+              true ->
+                p
+            end
+          end)
+
+        %Game{
+          game
+          | players: players,
+            state: :day
+        }
+
+      true ->
+        game
+    end
+  end
+
+  defp check_for_winner(game) do
+    number_of_werewolves =
+      Enum.count(game.players, fn p -> p.state == :alive && p.role == :werewolf end)
+
+    number_of_villagers =
+      Enum.count(game.players, fn p -> p.state == :alive && p.role != :werewolf end)
+
+    cond do
+      number_of_werewolves == 0 ->
+        %Game{game | winner: :villagers}
+
+      number_of_werewolves == number_of_villagers ->
+        %Game{game | winner: :werewolves}
+
+      true ->
+        game
+    end
+  end
+
+  defp get_doctor(game) do
+    game.players |> Enum.find(fn p -> p.role == :doctor end)
+  end
+
+  defp get_seer(game) do
+    game.players |> Enum.find(fn p -> p.role == :seer end)
+  end
+
+  defp divine_players(game) do
+    players =
+      game.players
+      |> Enum.map(fn p ->
+        cond do
+          p.uuid == game.seer_sees && p.role == :werewolf -> Map.put(p, :seen, :werewolf)
+          p.uuid == game.seer_sees && p.role != :werewolf -> Map.put(p, :seen, :not_a_werewolf)
+          true -> p
+        end
+      end)
+
+    %Game{game | players: players}
   end
 end

@@ -1,6 +1,8 @@
 defmodule Werewolf.Player do
   defstruct uuid: nil,
             role: nil,
+            state: :alive,
+            seen: :unseen,
             screen_name: nil
 
   @type t() :: %__MODULE__{}

@@ -2,7 +2,14 @@ defmodule Werewolf.Game do
   defstruct code: nil,
             host_id: nil,
             players: [],
-            state: :not_started
+            werewolf_votes: [],
+            village_votes: [],
+            doctor_heals: nil,
+            seer_sees: nil,
+            werewolves_eat: nil,
+            villagers_kill: nil,
+            state: :not_started,
+            winner: nil
 
   @type t() :: %__MODULE__{}
 
