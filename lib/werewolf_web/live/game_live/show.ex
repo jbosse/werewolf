@@ -43,6 +43,7 @@ defmodule WerewolfWeb.GameLive.Show do
      |> assign(connected_uuids: list_present(socket))}
   end
 
+  @impl true
   def handle_info({:game_saved, game}, socket) do
     {:noreply, socket |> update(:game, fn _ -> game end)}
   end
@@ -52,6 +53,14 @@ defmodule WerewolfWeb.GameLive.Show do
     player = Player.new(socket.assigns.session_id, screen_name)
     game = socket.assigns.game
     new_game = %Game{game | players: [player | game.players]}
+    GameStore.save(new_game)
+    {:noreply, assign(socket, game: new_game, may_join: false)}
+  end
+
+  @impl true
+  def handle_event("begin_game", _params, socket) do
+    game = socket.assigns.game
+    new_game = begin_game(game)
     GameStore.save(new_game)
     {:noreply, assign(socket, game: new_game, may_join: false)}
   end
@@ -67,4 +76,16 @@ defmodule WerewolfWeb.GameLive.Show do
   defp may_join(session_id, [session_id]), do: false
   defp may_join(session_id, [session_id | _players]), do: false
   defp may_join(session_id, [_ | players]), do: may_join(session_id, players)
+
+  defp begin_game(game) do
+    players =
+      game.players
+      |> Enum.count()
+      |> Werewolf.Roles.get()
+      |> Enum.shuffle()
+      |> Enum.zip(game.players)
+      |> Enum.map(fn {role, player} -> %Player{player | role: role} end)
+
+    %Game{game | state: :night, players: players}
+  end
 end
