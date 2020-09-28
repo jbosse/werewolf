@@ -2,6 +2,7 @@
   border: 1px solid #eee;
   padding: 0.5rem;
 }
+
 a:hover {
   cursor: pointer;
 }
@@ -9,13 +10,23 @@ a:hover {
 label[for="audio"] {
   padding-top: 2rem;
 }
+
 .chat .player {
   margin-bottom: 1rem;
   border: 1px solid #eee;
   border-radius: 1rem;
   padding: 1rem;
   display: flex;
+
   .name {
     padding-right: 1rem;
+  }
+}
+
+body {
+  [role="main"] {
+    border-radius: 1.5rem;
+    padding: 3rem;
+    background-color: rgba(0, 0, 0, 0.5);
   }
 }
