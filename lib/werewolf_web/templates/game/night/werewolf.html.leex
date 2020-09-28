@@ -4,12 +4,7 @@
   <p>Please select your meal</p>
   <section class="players">
     <%= for player <- @game.players |> Enum.reject(fn p -> p.state == :dead || p.role == :werewolf end) do %>
-      <div>
-        <strong><%= player.screen_name %></strong>
-        <a phx-click="mark"
-        phx-value-player-id="<%= player.uuid %>"
-        phx-value-session-id="<%= @session_id %>">Eat</a>
-      </div>
+      <%= live_component(@socket, WerewolfWeb.GameLive.Night.DinnerMenuComponent, id: "menu-player:" <> player.uuid, session_id: @session_id, game: @game, player: player) %>
     <% end %>
   </section>
 <% else %>

@@ -1,16 +1,16 @@
 defmodule Werewolf.Roles do
-  def get(6), do: [:seer, :doctor, :werewolf, :villager, :villager, :villager]
-  def get(7), do: [:seer, :doctor, :werewolf, :villager, :villager, :villager, :villager]
+  def get(6), do: [:seer, :doctor, :werewolf, :werewolf, :villager, :villager]
+  def get(7), do: [:seer, :doctor, :werewolf, :werewolf, :villager, :villager, :villager]
 
   def get(8),
-    do: [:seer, :doctor, :werewolf, :villager, :villager, :villager, :villager, :villager]
+    do: [:seer, :doctor, :werewolf, :werewolf, :villager, :villager, :villager, :villager]
 
   def get(9),
     do: [
       :seer,
       :doctor,
       :werewolf,
-      :villager,
+      :werewolf,
       :villager,
       :villager,
       :villager,
@@ -53,7 +53,7 @@ defmodule Werewolf.Roles do
       :doctor,
       :werewolf,
       :werewolf,
-      :villager,
+      :werewolf,
       :villager,
       :villager,
       :villager,
@@ -69,7 +69,7 @@ defmodule Werewolf.Roles do
       :doctor,
       :werewolf,
       :werewolf,
-      :villager,
+      :werewolf,
       :villager,
       :villager,
       :villager,

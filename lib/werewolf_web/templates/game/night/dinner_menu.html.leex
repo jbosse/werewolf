@@ -1,0 +1,6 @@
+<div class="menu-player">
+  <strong><%= @player.screen_name %></strong>
+  <a phx-click="mark"
+  phx-value-player-id="<%= @player.uuid %>"
+  phx-value-session-id="<%= @session_id %>">Eat</a>
+</div>
