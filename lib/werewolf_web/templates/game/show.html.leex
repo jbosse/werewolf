@@ -63,6 +63,7 @@
   <h3><%= @game.winner %> win!</h3>
   <a href="/" class="button">Home</a>
 <% end %>
+<!--
 <label for="audio">Audio Chat Center</label>
 <div name="audio" class="chat" phx-hook="JoinCall">
   <%= for uuid <- @connected_uuids do %>
@@ -103,3 +104,4 @@
     <span phx-hook="HandleIceCandidateOffer" data-from-user-uuid="<%= ice_candidate_offer["from_user"] %>" data-ice-candidate="<%= Jason.encode!(ice_candidate_offer["candidate"]) %>"></span>
   <% end %>
 </div>
+//-->
