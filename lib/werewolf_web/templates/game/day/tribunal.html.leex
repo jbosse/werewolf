@@ -2,9 +2,9 @@
   <%= for player <- @game.players do %>
     <div>
       <%= if may_vote(@session_id, @game) && player.state == :alive && player.uuid != @session_id do %>
-        <a phx-click="vote"
+        <button phx-click="vote"
       phx-value-player-id="<%= player.uuid %>"
-      phx-value-session-id="<%= @session_id %>">Vote</a>
+      phx-value-session-id="<%= @session_id %>">Vote</button>
       <% end %>
       <%= player.screen_name %>
       <%= if has_village_votes(player.uuid, @game) do %>

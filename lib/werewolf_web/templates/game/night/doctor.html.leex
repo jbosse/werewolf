@@ -5,8 +5,8 @@
     <%= for player <- @game.players |> Enum.reject(fn p -> p.state == :dead end) do %>
       <div>
         <strong><%= player.screen_name %></strong>
-        <a phx-click="protect"
-          phx-value-player-id="<%= player.uuid %>">Protect</a>
+        <button phx-click="protect"
+          phx-value-player-id="<%= player.uuid %>">Protect</button>
       </div>
     <% end %>
   </section>

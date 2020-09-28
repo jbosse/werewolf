@@ -9,14 +9,14 @@
         [<%= get_votes(player.uuid, @game) %>]
       <% end %>
       <%= if may_mark(@session_id, @game) do %>
-        <a phx-click="mark"
+        <button phx-click="mark"
           phx-value-player-id="<%= player.uuid %>"
-          phx-value-session-id="<%= @session_id %>">Mark</a>
+          phx-value-session-id="<%= @session_id %>">Mark</button>
       <% else %>
         <%= if may_unmark(@session_id, @game, player.uuid) do %>
-          <a phx-click="unmark"
+          <button phx-click="unmark"
             phx-value-player-id="<%= player.uuid %>"
-            phx-value-session-id="<%= @session_id %>">Unmark</a>
+            phx-value-session-id="<%= @session_id %>">Unmark</button>
         <% end %>
       <% end %>
     </div>

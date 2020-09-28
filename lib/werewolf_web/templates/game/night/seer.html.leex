@@ -6,8 +6,8 @@
       <%= if @session_id != player.uuid && player.role != :seer do %>
         <div>
           <strong><%= player.screen_name %></strong>
-          <a phx-click="divine"
-            phx-value-player-id="<%= player.uuid %>">Divine</a>
+          <button phx-click="divine"
+            phx-value-player-id="<%= player.uuid %>">Divine</button>
         </div>
       <% end %>
     <% end %>
