@@ -132,7 +132,7 @@ function createPeerConnection(lv, fromUser, offer) {
     iceServers: [
       // We're going to get into STUN servers later, but for now, you
       // may use ours for this portion of development.
-      { urls: "stun.l.google.com:19302" }
+      { urls: "stun:littlechat.app:3478" }
     ]
   })
 
