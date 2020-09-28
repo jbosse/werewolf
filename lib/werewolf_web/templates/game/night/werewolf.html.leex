@@ -1,12 +1,24 @@
 <p><strong>You are a werewolf.</strong></p>
-<%= if may_kill(@session_id, @game) do %>
-  <h3>Dinner Menu</h3>
-  <p>Please select your meal</p>
-  <section class="players">
-    <%= for player <- @game.players |> Enum.reject(fn p -> p.state == :dead || p.role == :werewolf end) do %>
-      <%= live_component(@socket, WerewolfWeb.GameLive.Night.DinnerMenuComponent, id: "menu-player:" <> player.uuid, session_id: @session_id, game: @game, player: player) %>
-    <% end %>
-  </section>
-<% else %>
-  <p>You have marked your prey, waiting for the rest of the pack...</p>
-<% end %>
+<h3>Dinner Menu</h3>
+<p>Please select your meal</p>
+<section class="players">
+  <%= for player <- @game.players |> Enum.reject(fn p -> p.state == :dead || p.role == :werewolf end) do %>
+    <div>
+      <strong><%= player.screen_name %></strong>
+      <%= if has_votes(player.uuid, @game) do %>
+        [<%= get_votes(player.uuid, @game) %>]
+      <% end %>
+      <%= if may_mark(@session_id, @game) do %>
+        <a phx-click="mark"
+          phx-value-player-id="<%= player.uuid %>"
+          phx-value-session-id="<%= @session_id %>">Mark</a>
+      <% else %>
+        <%= if may_unmark(@session_id, @game, player.uuid) do %>
+          <a phx-click="unmark"
+            phx-value-player-id="<%= player.uuid %>"
+            phx-value-session-id="<%= @session_id %>">Unmark</a>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</section>

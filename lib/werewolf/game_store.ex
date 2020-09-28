@@ -4,6 +4,7 @@ defmodule Werewolf.GameStore do
 
   def save(%Game{code: code} = game) do
     persist(code, game)
+    IO.inspect(game)
     broadcast(:game_saved, game)
   end
 

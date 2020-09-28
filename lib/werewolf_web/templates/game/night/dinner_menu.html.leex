@@ -1,5 +1,18 @@
 <div class="menu-player">
   <strong><%= @player.screen_name %></strong>
+  <div>
+    <%= for name <- @nominated do %>
+    <div><%= name %></div>
+    <% end %>
+  </div>
+  <div>
+  <button
+    class="button-clear"
+    phx-click="nominate"
+    phx-target="<%= @myself %>"
+    phx-value-player-id="<%= @player.uuid %>"
+    phx-value-screen-name="<%= get_player(@session_id, @game.players).screen_name %>">👍</button>
+  </div>
   <a phx-click="mark"
   phx-value-player-id="<%= @player.uuid %>"
   phx-value-session-id="<%= @session_id %>">Eat</a>

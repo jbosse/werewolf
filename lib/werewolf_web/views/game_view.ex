@@ -40,10 +40,17 @@ defmodule WerewolfWeb.GameView do
   defp get_player(session_id, [%Player{:uuid => session_id} = player | _]), do: player
   defp get_player(session_id, [_ | players]), do: get_player(session_id, players)
 
-  def may_kill(session_id, game) do
+  def may_mark(session_id, game) do
     case Enum.find(game.werewolf_votes, fn {id, _} -> session_id == id end) do
       nil -> true
       _ -> false
+    end
+  end
+
+  def may_unmark(session_id, game, uuid) do
+    case Enum.find(game.werewolf_votes, fn {s, p} -> s == session_id && p == uuid end) do
+      nil -> false
+      _ -> true
     end
   end
 
@@ -58,6 +65,34 @@ defmodule WerewolfWeb.GameView do
     case session_id |> get_player(game.players) do
       nil -> true
       player -> player.state == :dead
+    end
+  end
+
+  defp get_votes(uuid, game) do
+    game.werewolf_votes
+    |> Enum.filter(fn {_, p} -> p == uuid end)
+    |> Enum.map(fn {s, _} -> get_player(s, game.players).screen_name end)
+    |> Enum.join(", ")
+  end
+
+  defp has_votes(uuid, game) do
+    case game.werewolf_votes |> Enum.find(fn {_, p} -> p == uuid end) do
+      nil -> false
+      _ -> true
+    end
+  end
+
+  defp get_village_votes(uuid, game) do
+    game.village_votes
+    |> Enum.filter(fn {_, p} -> p == uuid end)
+    |> Enum.map(fn {s, _} -> get_player(s, game.players).screen_name end)
+    |> Enum.join(", ")
+  end
+
+  defp has_village_votes(uuid, game) do
+    case game.village_votes |> Enum.find(fn {_, p} -> p == uuid end) do
+      nil -> false
+      _ -> true
     end
   end
 end

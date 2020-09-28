@@ -70,7 +70,23 @@ defmodule WerewolfWeb.GameLive.Show do
     game = socket.assigns.game
 
     new_game =
-      %Game{game | werewolf_votes: [{session_id, player_id}]}
+      %Game{game | werewolf_votes: [{session_id, player_id} | game.werewolf_votes]}
+      |> check_for_death()
+      |> check_for_end_of_round()
+      |> check_for_winner()
+
+    GameStore.save(new_game)
+    {:noreply, assign(socket, game: new_game, may_join: false)}
+  end
+
+  def handle_event("unmark", %{"session-id" => session_id, "player-id" => player_id}, socket) do
+    game = socket.assigns.game
+
+    new_votes =
+      game.werewolf_votes |> Enum.reject(fn {s, p} -> s == session_id && p == player_id end)
+
+    new_game =
+      %Game{game | werewolf_votes: new_votes}
       |> check_for_death()
       |> check_for_end_of_round()
       |> check_for_winner()
@@ -113,6 +129,7 @@ defmodule WerewolfWeb.GameLive.Show do
     new_game =
       %Game{game | village_votes: [{session_id, player_id} | game.village_votes]}
       |> check_for_end_of_day()
+      |> check_for_winner()
 
     GameStore.save(new_game)
     {:noreply, assign(socket, game: new_game, may_join: false)}
@@ -153,7 +170,9 @@ defmodule WerewolfWeb.GameLive.Show do
   end
 
   defp check_for_death(game) do
-    number_of_werewolves = Enum.count(game.players, fn p -> p.role == :werewolf end)
+    number_of_werewolves =
+      Enum.count(game.players, fn p -> p.state == :alive && p.role == :werewolf end)
+
     number_of_werewolf_votes = Enum.count(game.werewolf_votes)
 
     cond do
@@ -163,10 +182,13 @@ defmodule WerewolfWeb.GameLive.Show do
   end
 
   defp kill_villager(game) do
+    number_of_werewolves =
+      Enum.count(game.players, fn p -> p.state == :alive && p.role == :werewolf end)
+
     votes = game.werewolf_votes
     tally = Enum.reduce(votes, %{}, fn {_, uuid}, acc -> Map.update(acc, uuid, 1, &(&1 + 1)) end)
 
-    {winner, _} =
+    {winner, votes} =
       Enum.reduce(tally, {:a, 0}, fn {k, v}, {acc_k, acc_v} ->
         cond do
           v > acc_v -> {k, v}
@@ -174,7 +196,13 @@ defmodule WerewolfWeb.GameLive.Show do
         end
       end)
 
-    %Game{game | werewolves_eat: winner}
+    cond do
+      number_of_werewolves == votes ->
+        %Game{game | werewolves_eat: winner}
+
+      true ->
+        game
+    end
   end
 
   defp kill_werewolf(game) do

@@ -7,6 +7,9 @@
       phx-value-session-id="<%= @session_id %>">Vote</a>
       <% end %>
       <%= player.screen_name %>
+      <%= if has_village_votes(player.uuid, @game) do %>
+        [<%= get_village_votes(player.uuid, @game) %>]
+      <% end %>
       <%= if Map.get(player, :state, :alive) == :dead do %>
         <strong>is dead</strong>
       <% end %>
