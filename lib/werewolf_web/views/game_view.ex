@@ -36,6 +36,13 @@ defmodule WerewolfWeb.GameView do
     end
   end
 
+  def get_player_name(session_id, game) do
+    case session_id |> get_player(game.players) do
+      nil -> "?"
+      player -> player.screen_name
+    end
+  end
+
   defp get_player(_session_id, []), do: nil
   defp get_player(session_id, [%Player{:uuid => session_id} = player | _]), do: player
   defp get_player(session_id, [_ | players]), do: get_player(session_id, players)

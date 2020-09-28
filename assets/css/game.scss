@@ -5,3 +5,17 @@
 a:hover {
   cursor: pointer;
 }
+
+label[for="audio"] {
+  padding-top: 2rem;
+}
+.chat .player {
+  margin-bottom: 1rem;
+  border: 1px solid #eee;
+  border-radius: 1rem;
+  padding: 1rem;
+  display: flex;
+  .name {
+    padding-right: 1rem;
+  }
+}

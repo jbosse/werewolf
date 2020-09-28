@@ -20,12 +20,18 @@ defmodule WerewolfWeb.GameLive.Show do
     Phoenix.PubSub.subscribe(PubSub, topic)
     {:ok, _} = Presence.track(self(), topic, session_id, %{})
 
+    Phoenix.PubSub.subscribe(PubSub, "game:" <> code <> ":" <> session_id)
+
     with {:ok, game} <- GameStore.get(code) do
       {:ok,
        assign(socket,
          game: game,
          session_id: session_id,
-         connected_uuids: [session_id]
+         connected_uuids: [],
+         offer_requests: [],
+         ice_candidate_offers: [],
+         sdp_offers: [],
+         answers: []
        )}
     else
       _ ->
@@ -40,7 +46,7 @@ defmodule WerewolfWeb.GameLive.Show do
   def handle_info(%Broadcast{event: "presence_diff"}, socket) do
     {:noreply,
      socket
-     |> assign(connected_uuids: list_present(socket))}
+     |> assign(connected_uuids: list_present(socket.assigns.game.code))}
   end
 
   @impl true
@@ -50,11 +56,37 @@ defmodule WerewolfWeb.GameLive.Show do
 
   @impl true
   def handle_event("join_game", %{"player" => %{"screen_name" => screen_name}}, socket) do
+    connect_to_players(
+      socket.assigns.connected_uuids,
+      socket.assigns.session_id,
+      socket.assigns.game
+    )
+
     player = Player.new(socket.assigns.session_id, screen_name)
     game = socket.assigns.game
     new_game = %Game{game | players: [player | game.players]}
     GameStore.save(new_game)
     {:noreply, assign(socket, game: new_game, may_join: false)}
+  end
+
+  defp connect_to_players(connected_uuids, session_id, game) do
+    for user <- connected_uuids do
+      send_direct_message(
+        game.code,
+        user,
+        "request_offers",
+        %{
+          from_user: session_id
+        }
+      )
+    end
+  end
+
+  defp already_joined(session_id, game) do
+    case game.players |> Enum.find(fn p -> session_id == p.uuid end) do
+      nil -> false
+      _ -> true
+    end
   end
 
   @impl true
@@ -135,8 +167,8 @@ defmodule WerewolfWeb.GameLive.Show do
     {:noreply, assign(socket, game: new_game, may_join: false)}
   end
 
-  defp list_present(socket) do
-    Presence.list("game:" <> socket.assigns.game.code)
+  defp list_present(code) do
+    Presence.list("game:" <> code)
     # Phoenix Presence provides nice metadata, but we don't need it.
     |> Enum.map(fn {uuid, _} -> uuid end)
   end
@@ -308,5 +340,82 @@ defmodule WerewolfWeb.GameLive.Show do
       end)
 
     %Game{game | players: players}
+  end
+
+  @impl true
+  @doc """
+  When an offer request has been received, add it to the `@offer_requests` list.
+  """
+  def handle_info(%Broadcast{event: "request_offers", payload: request}, socket) do
+    {:noreply,
+     socket
+     |> assign(:offer_requests, socket.assigns.offer_requests ++ [request])}
+  end
+
+  defp send_direct_message(code, to_user, event, payload) do
+    WerewolfWeb.Endpoint.broadcast_from(
+      self(),
+      "game:" <> code <> ":" <> to_user,
+      event,
+      payload
+    )
+  end
+
+  @impl true
+  def handle_event("new_ice_candidate", payload, socket) do
+    payload = Map.merge(payload, %{"from_user" => socket.assigns.session_id})
+
+    send_direct_message(socket.assigns.game.code, payload["toUser"], "new_ice_candidate", payload)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("new_sdp_offer", payload, socket) do
+    payload = Map.merge(payload, %{"from_user" => socket.assigns.session_id})
+
+    send_direct_message(socket.assigns.game.code, payload["toUser"], "new_sdp_offer", payload)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("ensure_connected", _payload, socket) do
+    if already_joined(socket.assigns.session_id, socket.assigns.game),
+      do:
+        connect_to_players(
+          list_present(socket.assigns.game.code),
+          socket.assigns.session_id,
+          socket.assigns.game
+        )
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("new_answer", payload, socket) do
+    payload = Map.merge(payload, %{"from_user" => socket.assigns.session_id})
+
+    send_direct_message(socket.assigns.game.code, payload["toUser"], "new_answer", payload)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(%Broadcast{event: "new_ice_candidate", payload: payload}, socket) do
+    {:noreply,
+     socket
+     |> assign(:ice_candidate_offers, socket.assigns.ice_candidate_offers ++ [payload])}
+  end
+
+  @impl true
+  def handle_info(%Broadcast{event: "new_sdp_offer", payload: payload}, socket) do
+    {:noreply,
+     socket
+     |> assign(:sdp_offers, socket.assigns.ice_candidate_offers ++ [payload])}
+  end
+
+  @impl true
+  def handle_info(%Broadcast{event: "new_answer", payload: payload}, socket) do
+    {:noreply,
+     socket
+     |> assign(:answers, socket.assigns.answers ++ [payload])}
   end
 end
