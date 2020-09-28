@@ -6,6 +6,11 @@ defmodule WerewolfWeb.GameController do
     render(conn, "index.html")
   end
 
+  @spec join(Plug.Conn.t(), map) :: Plug.Conn.t()
+  def join(conn, %{"code" => code}) do
+    redirect(conn, to: Routes.game_show_path(conn, :show, code))
+  end
+
   @spec create(Plug.Conn.t(), map) :: Plug.Conn.t()
   def create(conn, _params) do
     session_id = Plug.Conn.get_session(conn, :session_id)

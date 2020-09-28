@@ -1,4 +1,7 @@
 <%= if @game.state == :not_started do %>
+  <div>
+    <p>The code is <strong><%= @game.code %></strong></p>
+  </div>
   <section class="players">
     <%= for player <- @game.players do %>
       <%= live_component(@socket, WerewolfWeb.GameLive.PlayerComponent, id: player.uuid, session_id: @session_id, player: player) %>
@@ -10,7 +13,6 @@
     <%= text_input f, :screen_name %>
     <%= submit "Join Game" %>
   </form>
-  <div>To join, use code <%= @game.code %></div>
 <% end %>
 <%= if may_begin(@session_id, @game) do %>
   <button phx-click="begin_game">Begin Game</button>
@@ -58,6 +60,6 @@
     <% end %>
   <% end %>
 <% else %>
-  <%= @game.winner %> win!
-  <a href="/games">New game</a>
+  <h3><%= @game.winner %> win!</h3>
+  <a href="/" class="button">Home</a>
 <% end %>

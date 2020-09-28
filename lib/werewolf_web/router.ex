@@ -18,9 +18,10 @@ defmodule WerewolfWeb.Router do
   scope "/", WerewolfWeb do
     pipe_through :browser
 
-    live "/", PageLive, :index
+    get "/", GameController, :index
     get "/games", GameController, :index
     post "/games", GameController, :create
+    post "/games/join", GameController, :join
     live "/games/:code", GameLive.Show, :show
   end
 
