@@ -12,4 +12,9 @@ defmodule WerewolfWeb.GameControllerTest do
     assert game.code == game_code
   end
 
+  test "redirects", %{conn: conn} do
+    conn = post(conn, Routes.game_path(conn, :join), [code: "ABCDEFG"])
+    assert redirected_to(conn) == Routes.game_show_path(conn, :show, "ABCDEFG")
+  end
+
 end
