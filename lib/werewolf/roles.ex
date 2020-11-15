@@ -1,4 +1,8 @@
 defmodule Werewolf.Roles do
+  @spec get(6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15) :: [
+          :doctor | :seer | :villager | :werewolf,
+          ...
+        ]
   def get(6), do: [:seer, :doctor, :werewolf, :werewolf, :villager, :villager]
   def get(7), do: [:seer, :doctor, :werewolf, :werewolf, :villager, :villager, :villager]
 

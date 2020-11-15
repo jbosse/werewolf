@@ -55,24 +55,30 @@ defmodule WerewolfWeb.GameLive.Show do
   end
 
   @impl true
-  def handle_event("join_game", %{"player" => %{"screen_name" => screen_name}}, socket) do
-    connect_to_players(
-      socket.assigns.connected_uuids,
-      socket.assigns.session_id,
-      socket.assigns.game
-    )
+  def handle_event("join_game",
+        %{"player" => %{"screen_name" => screen_name}},
+        %{
+          assigns: %{
+            connected_uuids: connected_uuids,
+            session_id: session_id,
+            game: %{code: code} = game
+          }
+        } = socket
+      ) do
+    connect_to_players(connected_uuids, session_id, code)
 
-    player = Player.new(socket.assigns.session_id, screen_name)
-    game = socket.assigns.game
-    new_game = %Game{game | players: [player | game.players]}
-    GameStore.save(new_game)
-    {:noreply, assign(socket, game: new_game, may_join: false)}
+    joined_game =
+      game
+      |> Game.add_player(Player.new(session_id, screen_name))
+      |> GameStore.save()
+
+    {:noreply, assign(socket, game: joined_game, may_join: false)}
   end
 
-  defp connect_to_players(connected_uuids, session_id, game) do
+  defp connect_to_players(connected_uuids, session_id, code) do
     for user <- connected_uuids do
       send_direct_message(
-        game.code,
+        code,
         user,
         "request_offers",
         %{

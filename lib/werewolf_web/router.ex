@@ -19,6 +19,7 @@ defmodule WerewolfWeb.Router do
     pipe_through :browser
 
     get "/", GameController, :index
+    live "/avatar", AvatarLive, :index
     get "/games", GameController, :index
     post "/games", GameController, :create
     post "/games/join", GameController, :join

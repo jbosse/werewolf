@@ -5,6 +5,7 @@ defmodule Werewolf.GameStore do
   def save(%Game{code: code} = game) do
     persist(code, game)
     broadcast(:game_saved, game)
+    game
   end
 
   @spec subscribe(binary) :: :ok | {:error, {:already_registered, pid}}

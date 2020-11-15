@@ -8,13 +8,13 @@ defmodule Werewolf.RolesTest do
   test "will get roles for 6 players" do
     result = Roles.get(6)
     assert Enum.count(result) == 6
-    assert result == [:seer, :doctor, :werewolf, :villager, :villager, :villager]
+    assert result == [:seer, :doctor, :werewolf, :werewolf, :villager, :villager]
   end
 
   test "will get roles for 7 players" do
     result = Roles.get(7)
     assert Enum.count(result) == 7
-    assert result == [:seer, :doctor, :werewolf, :villager, :villager, :villager, :villager]
+    assert result == [:seer, :doctor, :werewolf, :werewolf, :villager, :villager, :villager]
   end
 
   test "will get roles for 8 players" do
@@ -25,7 +25,7 @@ defmodule Werewolf.RolesTest do
              :seer,
              :doctor,
              :werewolf,
-             :villager,
+             :werewolf,
              :villager,
              :villager,
              :villager,
@@ -41,7 +41,7 @@ defmodule Werewolf.RolesTest do
              :seer,
              :doctor,
              :werewolf,
-             :villager,
+             :werewolf,
              :villager,
              :villager,
              :villager,
@@ -96,7 +96,7 @@ defmodule Werewolf.RolesTest do
              :doctor,
              :werewolf,
              :werewolf,
-             :villager,
+             :werewolf,
              :villager,
              :villager,
              :villager,
@@ -116,7 +116,7 @@ defmodule Werewolf.RolesTest do
              :doctor,
              :werewolf,
              :werewolf,
-             :villager,
+             :werewolf,
              :villager,
              :villager,
              :villager,

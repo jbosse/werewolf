@@ -42,4 +42,9 @@ defmodule Werewolf.Game do
   def build_game(number_of_players, game) do
     build_game(number_of_players - 1, %{game | players: [%{} | game.players]})
   end
+
+  @spec add_player(Werewolf.Game.t(), Werewolf.Player.t()) :: Werewolf.Game.t()
+  def add_player(game, player) do
+    %Game{game | players: [player | game.players]}
+  end
 end
