@@ -45,7 +45,8 @@ defmodule Werewolf.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
-      {:uuid, "~> 1.1"}
+      {:uuid, "~> 1.1"},
+      {:assert_html, "~> 0.1.2", only: :test}
     ]
   end
 

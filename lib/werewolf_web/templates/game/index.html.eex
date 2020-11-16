@@ -3,6 +3,7 @@
 <input type="text" name="code" placeholder="ABCDEF" maxlength="6" />
 <button type="submit">Join a Game</button>
 <% end %>
+
 <%= form_for @conn, Routes.game_path(@conn, :create), [], fn _ -> %>
 <p>To begin a new game, click "Create a Game".</p>
 <button type="submit">Create a Game</button>

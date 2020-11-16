@@ -1,4 +1,5 @@
 %{
+  "assert_html": {:hex, :assert_html, "0.1.2", "d87fb80ca5ee190f9be97fbdc649826c17135fff1a1cfcef6ea5be550a1fcd4d", [:mix], [{:floki, "~> 0.21", [hex: :floki, repo: "hexpm", optional: false]}], "hexpm", "602212a42bad9026f297a72366087ffeece7e39a3504fc587153f90e738e4272"},
   "cowboy": {:hex, :cowboy, "2.8.0", "f3dc62e35797ecd9ac1b50db74611193c29815401e53bac9a5c0577bd7bc667d", [:rebar3], [{:cowlib, "~> 2.9.1", [hex: :cowlib, repo: "hexpm", optional: false]}, {:ranch, "~> 1.7.1", [hex: :ranch, repo: "hexpm", optional: false]}], "hexpm", "4643e4fba74ac96d4d152c75803de6fad0b3fa5df354c71afdd6cbeeb15fac8a"},
   "cowlib": {:hex, :cowlib, "2.9.1", "61a6c7c50cf07fdd24b2f45b89500bb93b6686579b069a89f88cb211e1125c78", [:rebar3], [], "hexpm", "e4175dc240a70d996156160891e1c62238ede1729e45740bdd38064dad476170"},
   "eqrcode": {:hex, :eqrcode, "0.1.7", "2c6674e0c22854355b0adc2e6c987a3a973c31eeb49870e72a1e463317d59014", [:mix], [], "hexpm", "391c7945e8a079e9b4aef3f98d601575213ae4d78a3098542d6f39358627100f"},

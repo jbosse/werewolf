@@ -1,5 +1,18 @@
 defmodule WerewolfWeb.GameControllerTest do
   use WerewolfWeb.ConnCase, async: true
+  use AssertHTML
+
+  test "it will render the page ot choose your path", %{conn: conn} do
+    conn = get(conn, Routes.game_path(conn, :index))
+
+    html_response(conn, 200)
+    |> assert_html("title", "Werewolf")
+    |> assert_html("form[action='#{Routes.game_path(conn, :join)}'][method='post]")
+    |> assert_html("input[name='code']")
+    |> assert_html("button[type='submit']:nth-child(4)", text: "Join a Game")
+    |> assert_html("form[action='#{Routes.game_path(conn, :create)}'][method='post]")
+    |> assert_html("button[type='submit']:nth-child(3)", text: "Create a Game")
+  end
 
   test "creates game and redirects", %{conn: conn} do
     conn = post(conn, Routes.game_path(conn, :create))

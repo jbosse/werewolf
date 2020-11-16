@@ -20,7 +20,6 @@ defmodule WerewolfWeb.Router do
 
     get "/", GameController, :index
     live "/avatar", AvatarLive, :index
-    get "/games", GameController, :index
     post "/games", GameController, :create
     post "/games/join", GameController, :join
     live "/games/:code", GameLive.Show, :show
