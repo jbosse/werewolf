@@ -4,5 +4,6 @@ defmodule Werewolf.PlayerStore do
 
   def save(%Player{uuid: uuid} = player) do
     persist(uuid, player)
+    player
   end
 end

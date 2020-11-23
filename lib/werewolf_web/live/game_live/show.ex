@@ -17,7 +17,6 @@ defmodule WerewolfWeb.GameLive.Show do
     topic = "game:" <> code
     if socket |> connected?, do: GameStore.subscribe(code)
 
-    Phoenix.PubSub.subscribe(PubSub, topic)
     {:ok, _} = Presence.track(self(), topic, session_id, %{})
 
     Phoenix.PubSub.subscribe(PubSub, "game:" <> code <> ":" <> session_id)
@@ -52,27 +51,6 @@ defmodule WerewolfWeb.GameLive.Show do
   @impl true
   def handle_info({:game_saved, game}, socket) do
     {:noreply, socket |> update(:game, fn _ -> game end)}
-  end
-
-  @impl true
-  def handle_event("join_game",
-        %{"player" => %{"screen_name" => screen_name}},
-        %{
-          assigns: %{
-            connected_uuids: connected_uuids,
-            session_id: session_id,
-            game: %{code: code} = game
-          }
-        } = socket
-      ) do
-    connect_to_players(connected_uuids, session_id, code)
-
-    joined_game =
-      game
-      |> Game.add_player(Player.new(session_id, screen_name))
-      |> GameStore.save()
-
-    {:noreply, assign(socket, game: joined_game, may_join: false)}
   end
 
   defp connect_to_players(connected_uuids, session_id, code) do
