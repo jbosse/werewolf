@@ -17,8 +17,7 @@ defmodule Werewolf.Application do
       WerewolfWeb.Endpoint,
       # Start a worker by calling: Werewolf.Worker.start_link(arg)
       # {Werewolf.Worker, arg}
-      Werewolf.GameStore,
-      Werewolf.PlayerStore
+      Werewolf.GameStore
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

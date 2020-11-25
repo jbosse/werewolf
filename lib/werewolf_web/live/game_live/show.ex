@@ -2,7 +2,6 @@ defmodule WerewolfWeb.GameLive.Show do
   use WerewolfWeb, :live_view
 
   alias Werewolf.GameStore
-  alias Werewolf.Game
   alias Werewolf.PubSub
   alias WerewolfWeb.Presence
   alias Phoenix.Socket.Broadcast
@@ -22,16 +21,7 @@ defmodule WerewolfWeb.GameLive.Show do
     Phoenix.PubSub.subscribe(PubSub, "game:" <> code <> ":" <> session_id)
 
     with {:ok, game} <- GameStore.get(code) do
-      {:ok,
-       assign(socket,
-         game: game,
-         session_id: session_id,
-         connected_uuids: [],
-         offer_requests: [],
-         ice_candidate_offers: [],
-         sdp_offers: [],
-         answers: []
-       )}
+      {:ok, assign(socket, game: game, session_id: session_id, connected_uuids: [])}
     else
       _ ->
         {:ok,
@@ -56,60 +46,45 @@ defmodule WerewolfWeb.GameLive.Show do
   @impl true
   def handle_event("begin_game", _params, socket) do
     game = socket.assigns.game
-      |> Game.begin_game()
-      |> GameStore.save()
-    {:noreply, assign(socket, game: game, may_join: false)}
+    {:noreply, assign(socket, game: Werewolf.begin_game(game), may_join: false)}
   end
 
   @impl true
   def handle_event("mark", %{"session-id" => session_id, "player-id" => player_id}, socket) do
-    game = socket.assigns.game
-      |> Game.werewolf_vote(session_id, player_id)
-      |> Game.check_for_eaten()
-      |> Game.check_for_end_of_night()
-      |> Game.check_for_winner()
-      |> GameStore.save()
-    {:noreply, assign(socket, game: game, may_join: false)}
+    socket.assigns.game
+      |> Werewolf.mark(session_id, player_id)
+      |> no_reply(socket)
   end
 
   def handle_event("unmark", %{"session-id" => session_id}, socket) do
-    game = socket.assigns.game
-      |> Game.werewolf_vote(session_id, nil)
-      |> Game.check_for_end_of_night()
-      |> Game.check_for_winner()
-      |> GameStore.save()
-    {:noreply, assign(socket, game: game, may_join: false)}
+    socket.assigns.game
+      |> Werewolf.unmark(session_id)
+      |> no_reply(socket)
   end
 
   @impl true
   def handle_event("protect", %{"session-id" => session_id, "player-id" => player_id}, socket) do
-    game = socket.assigns.game
-      |> Game.protect(session_id, player_id)
-      |> Game.check_for_end_of_night()
-      |> Game.check_for_winner()
-      |> GameStore.save()
-    {:noreply, assign(socket, game: game, may_join: false)}
+    socket.assigns.game
+      |> Werewolf.protect(session_id, player_id)
+      |> no_reply(socket)
   end
 
   @impl true
   def handle_event("divine", %{"session-id" => session_id, "player-id" => player_id}, socket) do
-    game = socket.assigns.game
-      |> Game.divine(session_id, player_id)
-      |> Game.check_for_end_of_night()
-      |> Game.check_for_winner()
-      |> GameStore.save()
-    {:noreply, assign(socket, game: game, may_join: false)}
+    socket.assigns.game
+      |> Werewolf.divine(session_id, player_id)
+      |> no_reply(socket)
   end
 
   @impl true
   def handle_event("vote", %{"session-id" => session_id, "player-id" => player_id}, socket) do
-    game = socket.assigns.game
-      |> Game.vote(session_id, player_id)
-      |> Game.check_for_village_kill()
-      |> Game.check_for_end_of_day()
-      |> Game.check_for_winner()
-      |> GameStore.save()
-    {:noreply, assign(socket, game: game, may_join: false)}
+    socket.assigns.game
+      |> Werewolf.vote(session_id, player_id)
+      |> no_reply(socket)
+  end
+
+  defp no_reply(game, socket) do
+    {:noreply, assign(socket, game: game)}
   end
 
   defp list_present(code) do
