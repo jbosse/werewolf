@@ -5,13 +5,13 @@ defmodule WerewolfWeb.GameLive.ShowTest do
   import Phoenix.LiveViewTest
 
   test "mount will redirect if game doesn't exists", %{conn: conn} do
-    game = Werewolf.Game.new("my_host") |> Werewolf.GameStore.save()
+    _game = Werewolf.Game.new("my_host") |> Werewolf.GameStore.save()
     {:error, {:live_redirect, %{to: "/"}}} = live(conn, Routes.game_show_path(conn, :show, "INVALID"))
   end
 
   test "mount", %{conn: conn} do
     game = Werewolf.Game.new("my_host") |> Werewolf.GameStore.save()
-    {:ok, view, html} = live(conn, Routes.game_show_path(conn, :show, game.code))
+    {:ok, _view, html} = live(conn, Routes.game_show_path(conn, :show, game.code))
     html
       |> assert_html("title", "Werewolf")
       |> assert_html("form[phx-submit=\"join_game\"]")
