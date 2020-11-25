@@ -1,0 +1,58 @@
+<%= if @game.state == :not_started do %>
+  <h1>Join the fun!</h1>
+  <h2>https://werewolf.jobo.dev/games/<%= @game.code %></h2>
+  <h3>Players</h3>
+  <ul>
+  <%= for player <- @game.players do %>
+    <li><%= player.screen_name %></li>
+  <% end %>
+  </ul>
+<% end %>
+<%= if @game.winner == nil do %>
+  <%= if @game.state == :night do %>
+    <h1>Night has fallen</h1>
+    <h3>Werewolves</h3>
+    <p>
+      The full moon has called on the Werewolves to join the hunt.
+      When they have all marked the same player, the feast will begin.
+    </p>
+    <h3>Seer</h3>
+    <p>
+      The seer can select a person and see their true selves.
+    </p>
+    <h3>Doctor</h3>
+    <p>
+      If the doctor heals the marked player, the feast is off and the lucky villager
+      will live to see another day.
+    </p>
+  <% end %>
+  <%= if @game.state == :day do %>
+    <h1>Morning has broken</h1>
+    <p>
+      As the sun rises, the village must face the realization that werewolves
+      have rampaged throught the village by the light of the full moon.
+    </p>
+    <p>
+      Something must be done and we must vote to kill our neighbor who is so sus.
+    </p>
+    <p>
+      <%= Enum.count(@game.village_votes) %> of <%= Enum.count(@game.players, fn v ->v.state != :dead end) %> villagers have voted.
+    </p>
+  <% end %>
+<% end %>
+<%= if @game.winner == :werewolves do %>
+  <h1>Werewolves Win!</h1>
+<% end %>
+<%= if @game.winner == :villagers do %>
+  <h1>Villagers Win!</h1>
+<% end %>
+<%= if @game.state != :not_started do %>
+  <h3>Obituaries</h3>
+  <ul>
+  <%= for player <- @game.players do %>
+    <%= if player.state == :dead do %>
+      <li><%= player.screen_name %> was loved an will be missed.</li>
+    <% end %>
+  <% end %>
+  </ul>
+<% end %>

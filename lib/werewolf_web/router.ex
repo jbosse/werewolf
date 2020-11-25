@@ -23,6 +23,7 @@ defmodule WerewolfWeb.Router do
     post "/games", GameController, :create
     post "/games/join", GameController, :join
     live "/games/:code", GameLive.Show, :show
+    live "/streamer/:code", StreamerLive.Show, :show
   end
 
   # Other scopes may use custom stacks.
