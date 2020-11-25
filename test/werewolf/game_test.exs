@@ -258,7 +258,7 @@ defmodule Werewolf.GameTest do
           %Player{uuid: "player5", role: :villager},
           %Player{uuid: "player6", role: :villager}
         ],
-        werewolf_votes: [{"player3", "player1"}, {"player4", "player2"}],
+        werewolf_votes: [{"player4", "player2"}],
       }
 
       assert {:ok, "player2"} == Game.werewolves_killed(game)
@@ -278,6 +278,25 @@ defmodule Werewolf.GameTest do
           %Player{uuid: "player6", role: :villager}
         ],
         werewolf_votes: [{"player3", "player1"}, {"player4", "player2"}],
+      }
+
+      assert :undecided == Game.werewolves_killed(game)
+    end
+
+    test "when the werewolf vote is not finished then return undecided'" do
+      game = %Game{
+        code: "AAAAAA",
+        host_id: "player1",
+        state: :night,
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        werewolf_votes: [{"player3", "player1"},],
       }
 
       assert :undecided == Game.werewolves_killed(game)

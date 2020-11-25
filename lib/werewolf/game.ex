@@ -76,18 +76,26 @@ defmodule Werewolf.Game do
   end
 
   def werewolves_killed(game) do
-    player_uuid = Enum.reduce(game.werewolf_votes, :none, fn {w, p}, current_player_uuid ->
-      werewolf = Enum.find(game.players, fn p -> p.uuid == w end)
-      cond do
-        :dead == werewolf.state -> current_player_uuid
-        :none == current_player_uuid -> p
-        p == current_player_uuid -> current_player_uuid
-        true -> nil
-      end
+    werewolves = Enum.count(game.players, fn p ->
+      p.state != :dead && p.role == :werewolf
     end)
-    case player_uuid do
-      nil -> :undecided
-      _ -> {:ok, player_uuid}
+    votes = Enum.count(game.werewolf_votes)
+    cond do
+      werewolves == votes ->
+        player_uuid = Enum.reduce(game.werewolf_votes, :none, fn {w, p}, current_player_uuid ->
+          werewolf = Enum.find(game.players, fn p -> p.uuid == w end)
+          cond do
+            :dead == werewolf.state -> current_player_uuid
+            :none == current_player_uuid -> p
+            p == current_player_uuid -> current_player_uuid
+            true -> nil
+          end
+        end)
+        case player_uuid do
+          nil -> :undecided
+          _ -> {:ok, player_uuid}
+        end
+      true -> :undecided
     end
   end
 

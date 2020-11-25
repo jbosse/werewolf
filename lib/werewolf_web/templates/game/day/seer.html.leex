@@ -1,4 +1,8 @@
 <p><strong>You are a seer.</strong></p>
+<%= if @game.seer_sees != nil do %>
+  <% player = get_player(@game.seer_sees, @game.players) %>
+  <p><%= player.screen_name %> is a <%= player.role %></p>
+<% end %>
 <%= live_component(
   @socket, WerewolfWeb.GameLive.Day.TribunalComponent,
   id: "tribunal:" <> @session_id,

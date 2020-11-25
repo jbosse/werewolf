@@ -1,9 +1,16 @@
 defmodule Werewolf do
   alias Werewolf.Game
+  alias Werewolf.Player
   alias Werewolf.GameStore
 
   def new_game(host_id) do
     Game.new(host_id)
+  end
+
+  def join_game(game, session_id, screen_name) do
+    game
+      |> Game.add_player(Player.new(session_id, screen_name))
+      |> GameStore.save()
   end
 
   def begin_game(game) do

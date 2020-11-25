@@ -40,13 +40,28 @@ defmodule WerewolfWeb.GameLive.Show do
 
   @impl true
   def handle_info({:game_saved, game}, socket) do
+    session_id = socket.assigns.session_id
+    host_id = socket.assigns.game.host_id
+    cond do
+      session_id == host_id -> IO.inspect(game)
+      true -> IO.puts(nil)
+    end
     {:noreply, socket |> update(:game, fn _ -> game end)}
   end
 
   @impl true
+  def handle_event("join_game",
+      %{"player" => %{"screen_name" => screen_name}},
+      %{assigns: %{session_id: session_id, game: game}} = socket
+    ) do
+    {:noreply, assign(socket, game: Werewolf.join_game(game, session_id, screen_name), may_join: false)}
+  end
+
+  @impl true
   def handle_event("begin_game", _params, socket) do
-    game = socket.assigns.game
-    {:noreply, assign(socket, game: Werewolf.begin_game(game), may_join: false)}
+    socket.assigns.game
+      |> Werewolf.begin_game()
+      |> no_reply(socket)
   end
 
   @impl true

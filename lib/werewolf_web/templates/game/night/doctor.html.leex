@@ -6,6 +6,7 @@
       <div>
         <strong><%= player.screen_name %></strong>
         <button phx-click="protect"
+          phx-value-session-id="<%= @session_id %>"
           phx-value-player-id="<%= player.uuid %>">Protect</button>
       </div>
     <% end %>
