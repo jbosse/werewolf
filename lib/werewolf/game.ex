@@ -158,6 +158,7 @@ defmodule Werewolf.Game do
     villager_count = Enum.count(alive, fn p -> p.role != :werewolf end)
     cond do
       werewolf_count >= villager_count -> %Game{ game | winner: :werewolves}
+      werewolf_count == 0 -> %Game{ game | winner: :villagers}
       true -> game
     end
   end

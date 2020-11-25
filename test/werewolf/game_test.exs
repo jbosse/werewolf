@@ -619,6 +619,42 @@ defmodule Werewolf.GameTest do
 
       assert :werewolves == result.winner
     end
+
+    test "villagers win if all werewolves are dead" do
+      game = %Game{
+        winner: nil,
+        players: [
+          %Player{uuid: "player1", role: :seer, state: :dead},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf, state: :dead},
+          %Player{uuid: "player4", role: :werewolf, state: :dead},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager, state: :dead}
+        ]
+      }
+
+      result = Game.check_for_winner(game)
+
+      assert :villagers == result.winner
+    end
+
+    test "no winner if werewolf lives and there are more villagers" do
+      game = %Game{
+        winner: nil,
+        players: [
+          %Player{uuid: "player1", role: :seer, state: :dead},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf, state: :dead},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager, state: :dead}
+        ]
+      }
+
+      result = Game.check_for_winner(game)
+
+      assert nil == result.winner
+    end
   end
 
   describe "Game.protect" do
