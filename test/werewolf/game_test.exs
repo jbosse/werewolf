@@ -202,6 +202,27 @@ defmodule Werewolf.GameTest do
       assert Game.werewolf_votes_for(result, "player1") == 1
       assert Game.werewolf_votes_for(result, "player2") == 0
     end
+
+    test "only werewolves vote" do
+      game = %Game{
+        code: "AAAAAA",
+        host_id: "player1",
+        state: :night,
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        werewolf_votes: [],
+      }
+
+      result = Game.werewolf_vote(game, "player5", "player1")
+
+      assert Enum.count(result.werewolf_votes) == 0
+    end
   end
 
   describe "Game.werewolves_killed" do
@@ -221,7 +242,7 @@ defmodule Werewolf.GameTest do
         werewolf_votes: [{"player3", "player1"}, {"player4", "player1"}],
       }
 
-      assert {:ok, "player1"} = Game.werewolves_killed(game)
+      assert {:ok, "player1"} == Game.werewolves_killed(game)
     end
 
     test "dead werewolves can't vote" do
@@ -240,7 +261,7 @@ defmodule Werewolf.GameTest do
         werewolf_votes: [{"player3", "player1"}, {"player4", "player2"}],
       }
 
-      assert {:ok, "player2"} = Game.werewolves_killed(game)
+      assert {:ok, "player2"} == Game.werewolves_killed(game)
     end
 
     test "when the werewolf vote is not unanimous then return undecided'" do
@@ -307,7 +328,7 @@ defmodule Werewolf.GameTest do
     end
   end
 
-  describe "Game.check_for_end_of_round" do
+  describe "Game.check_for_end_of_night" do
     test "round is not over if doctor hasn't healed" do
 
       game = %Game{
@@ -327,7 +348,7 @@ defmodule Werewolf.GameTest do
         ]
       }
 
-      result = Game.check_for_end_of_round(game)
+      result = Game.check_for_end_of_night(game)
 
       assert :night == result.state
     end
@@ -350,7 +371,7 @@ defmodule Werewolf.GameTest do
         ]
       }
 
-      result = Game.check_for_end_of_round(game)
+      result = Game.check_for_end_of_night(game)
 
       assert :night == result.state
     end
@@ -373,7 +394,7 @@ defmodule Werewolf.GameTest do
         ]
       }
 
-      result = Game.check_for_end_of_round(game)
+      result = Game.check_for_end_of_night(game)
 
       assert :night == result.state
     end
@@ -386,6 +407,8 @@ defmodule Werewolf.GameTest do
         seer_sees: "player2",
         doctor_heals: "player6",
         werewolves_eat: "player2",
+        village_votes: [1,2,3],
+        villagers_kill: "A",
         players: [
           %Player{uuid: "player1", role: :seer},
           %Player{uuid: "player2", role: :doctor},
@@ -396,9 +419,11 @@ defmodule Werewolf.GameTest do
         ]
       }
 
-      result = Game.check_for_end_of_round(game)
+      result = Game.check_for_end_of_night(game)
 
       assert :day == result.state
+      assert result.village_votes == []
+      assert result.villagers_kill == nil
     end
 
     test "round is over if seer is dead, doctor heals, werewolves eat" do
@@ -419,7 +444,7 @@ defmodule Werewolf.GameTest do
         ]
       }
 
-      result = Game.check_for_end_of_round(game)
+      result = Game.check_for_end_of_night(game)
 
       assert :day == result.state
     end
@@ -442,7 +467,7 @@ defmodule Werewolf.GameTest do
         ]
       }
 
-      result = Game.check_for_end_of_round(game)
+      result = Game.check_for_end_of_night(game)
 
       assert :day == result.state
     end
@@ -465,7 +490,7 @@ defmodule Werewolf.GameTest do
         ]
       }
 
-      result = Game.check_for_end_of_round(game)
+      result = Game.check_for_end_of_night(game)
 
       assert :dead == Enum.at(result.players, 4).state
     end
@@ -488,7 +513,7 @@ defmodule Werewolf.GameTest do
         ]
       }
 
-      result = Game.check_for_end_of_round(game)
+      result = Game.check_for_end_of_night(game)
 
       assert :villager == Enum.at(result.players, 5).seen
     end
@@ -511,7 +536,7 @@ defmodule Werewolf.GameTest do
         ]
       }
 
-      result = Game.check_for_end_of_round(game)
+      result = Game.check_for_end_of_night(game)
 
       assert :alive == Enum.at(result.players, 4).state
     end
@@ -534,7 +559,7 @@ defmodule Werewolf.GameTest do
         ]
       }
 
-      result = Game.check_for_end_of_round(game)
+      result = Game.check_for_end_of_night(game)
 
       assert :dead == Enum.at(result.players, 4).state
     end
@@ -777,6 +802,408 @@ defmodule Werewolf.GameTest do
       result = Game.divine(game, "player1", "player7")
 
       assert nil == result.seer_sees
+    end
+  end
+
+  describe "Game.vote" do
+    test "will allow vote when no existing vote" do
+      game = %Game{
+        code: "AAAAAA",
+        host_id: "player1",
+        state: :night,
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [],
+      }
+
+      result = Game.vote(game, "player3", "player1")
+
+      assert Enum.count(result.village_votes) == 1
+      assert Enum.count(result.village_votes, fn {v, _p} -> v == "player3" end) == 1
+      assert Game.village_votes_for(result, "player1") == 1
+    end
+
+    test "will allow others to vote" do
+      game = %Game{
+        code: "AAAAAA",
+        host_id: "player1",
+        state: :night,
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [{"player3", "player1"}],
+      }
+
+      result = Game.vote(game, "player4", "player2")
+
+      assert Enum.count(result.village_votes) == 2
+      assert Enum.count(result.village_votes, fn {v, _p} -> v == "player3" end) == 1
+      assert Enum.count(result.village_votes, fn {v, _p} -> v == "player4" end) == 1
+      assert Game.village_votes_for(result, "player1") == 1
+      assert Game.village_votes_for(result, "player2") == 1
+    end
+
+    test "will not allow you to vote twice" do
+      game = %Game{
+        code: "AAAAAA",
+        host_id: "player1",
+        state: :night,
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [{"player3", "player1"}],
+      }
+
+      result = Game.vote(game, "player3", "player1")
+
+      assert Enum.count(result.village_votes) == 1
+      assert Enum.count(result.village_votes, fn {v, _p} -> v == "player3" end) == 1
+      assert Game.village_votes_for(result, "player1") == 1
+    end
+
+    test "will not allow you to vote for a dead player" do
+      game = %Game{
+        code: "AAAAAA",
+        host_id: "player1",
+        state: :night,
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor, state: :dead},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [],
+      }
+
+      result = Game.vote(game, "player3", "player2")
+
+      assert Enum.count(result.village_votes) == 0
+    end
+
+    test "will not allow you to vote if dead" do
+      game = %Game{
+        code: "AAAAAA",
+        host_id: "player1",
+        state: :night,
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf, state: :dead},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [],
+      }
+
+      result = Game.vote(game, "player3", "player2")
+
+      assert Enum.count(result.village_votes) == 0
+    end
+
+    test "will allow you to change your vote" do
+      game = %Game{
+        code: "AAAAAA",
+        host_id: "player1",
+        state: :night,
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [{"player3", "player1"}, {"player4", "player1"}],
+      }
+
+      result = Game.vote(game, "player3", "player2")
+
+      assert Enum.count(result.village_votes) == 2
+      assert Enum.count(result.village_votes, fn {v, _p} -> v == "player3" end) == 1
+      assert Enum.count(result.village_votes, fn {v, _p} -> v == "player4" end) == 1
+      assert Game.village_votes_for(result, "player1") == 1
+      assert Game.village_votes_for(result, "player2") == 1
+    end
+
+    test "will allow you to remove your vote" do
+      game = %Game{
+        code: "AAAAAA",
+        host_id: "player1",
+        state: :night,
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [{"player4", "player1"}],
+      }
+
+      result = Game.vote(game, "player3", nil)
+
+      assert Enum.count(result.village_votes) == 1
+      assert Enum.count(result.village_votes, fn {v, _p} -> v == "player3" end) == 0
+      assert Enum.count(result.village_votes, fn {v, _p} -> v == "player4" end) == 1
+      assert Game.village_votes_for(result, "player1") == 1
+      assert Game.village_votes_for(result, "player2") == 0
+    end
+  end
+
+  describe "Game.villagers_killed" do
+    test "vote isn't certified until all votes are cast even if majority" do
+      game = %Game{
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [
+          {"player3", "player1"},
+          {"player4", "player1"},
+          {"player5", "player1"},
+          {"player6", "player1"}
+        ],
+      }
+
+      assert :voting == Game.villagers_killed(game)
+    end
+
+    test "when the village vote is a majortiy then return 'winner'" do
+      game = %Game{
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [
+          {"player1", "player2"},
+          {"player2", "player2"},
+          {"player3", "player1"},
+          {"player4", "player1"},
+          {"player5", "player1"},
+          {"player6", "player1"}
+        ],
+      }
+
+      assert {:ok, "player1"} == Game.villagers_killed(game)
+    end
+
+    test "dead villagers can't stop the vote" do
+      game = %Game{
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor, state: :dead},
+          %Player{uuid: "player3", role: :werewolf, state: :dead},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager, state: :dead},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [
+          {"player1", "player4"},
+          {"player4", "player1"},
+          {"player6", "player1"}
+        ],
+      }
+
+      assert {:ok, "player1"} = Game.villagers_killed(game)
+    end
+
+    test "dead villagers votes dont count" do
+      game = %Game{
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor, state: :dead},
+          %Player{uuid: "player3", role: :werewolf, state: :dead},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager, state: :dead},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [
+          {"player1", "player6"},
+          {"player2", "player6"},
+          {"player3", "player6"},
+          {"player4", "player1"},
+          {"player5", "player6"},
+          {"player6", "player1"}
+        ],
+      }
+
+      assert {:ok, "player1"} == Game.villagers_killed(game)
+    end
+
+    test "villagers don't choose a majority" do
+      game = %Game{
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [
+          {"player1", "player2"},
+          {"player2", "player3"},
+          {"player3", "player4"},
+          {"player4", "player5"},
+          {"player5", "player6"},
+          {"player6", "player1"}
+        ]
+      }
+
+      assert :undecided == Game.villagers_killed(game)
+    end
+  end
+
+  describe "Game.check_for_village_kill" do
+    test "majority vote marks player as killed" do
+      game = %Game{
+        villagers_kill: nil,
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor, state: :dead},
+          %Player{uuid: "player3", role: :werewolf, state: :dead},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager, state: :dead},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [
+          {"player1", "player6"},
+          {"player2", "player6"},
+          {"player3", "player6"},
+          {"player4", "player1"},
+          {"player5", "player6"},
+          {"player6", "player1"}
+        ],
+      }
+
+      result = Game.check_for_village_kill(game)
+
+      assert "player1" == result.villagers_kill
+    end
+
+    test "still voting marks noone as killed" do
+      game = %Game{
+        villagers_kill: nil,
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [{"player3", "player1"}, {"player4", "player2"}],
+      }
+
+      result = Game.check_for_village_kill(game)
+
+      assert nil == result.villagers_kill
+    end
+
+    test "no majority marks noone as killed" do
+      game = %Game{
+        villagers_kill: nil,
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+        village_votes: [
+          {"player1", "player2"},
+          {"player2", "player3"},
+          {"player3", "player4"},
+          {"player4", "player5"},
+          {"player5", "player6"},
+          {"player6", "player1"}
+        ],
+      }
+
+      result = Game.check_for_village_kill(game)
+
+      assert :undecided == result.villagers_kill
+    end
+  end
+
+  describe "Game.check_for_end_of_day" do
+    test "round is not over villager vote is not complete" do
+      game = %Game{
+        state: :day,
+        villagers_kill: nil
+      }
+
+      result = Game.check_for_end_of_day(game)
+
+      assert :day == result.state
+    end
+
+    test "round is over if villager vote is undecided" do
+      game = %Game{
+        state: :day,
+        villagers_kill: :undecided
+      }
+
+      result = Game.check_for_end_of_day(game)
+
+      assert :night == result.state
+    end
+
+    test "round is over if villagers kill" do
+      game = %Game{
+        state: :day,
+        villagers_kill: "player1",
+        werewolf_votes: [1,2,3],
+        doctor_heals: "A",
+        seer_sees: "B",
+        werewolves_eat: "C",
+        players: [
+          %Player{uuid: "player1", role: :seer},
+          %Player{uuid: "player2", role: :doctor},
+          %Player{uuid: "player3", role: :werewolf},
+          %Player{uuid: "player4", role: :werewolf},
+          %Player{uuid: "player5", role: :villager},
+          %Player{uuid: "player6", role: :villager}
+        ],
+      }
+
+      result = Game.check_for_end_of_day(game)
+
+      assert :night == result.state
+      assert Enum.at(result.players, 0).state == :dead
+      assert result.werewolf_votes == []
+      assert result.doctor_heals == nil
+      assert result.seer_sees == nil
+      assert result.werewolves_eat == nil
     end
   end
 end

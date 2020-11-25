@@ -32,19 +32,6 @@ defmodule Werewolf.Game do
     |> Enum.join("")
   end
 
-  @spec start(non_neg_integer) :: Map
-  def start(number_of_players) do
-    build_game(number_of_players, %{players: []})
-  end
-
-  @spec build_game(non_neg_integer, map) :: Map
-  def build_game(0, game), do: game
-
-  def build_game(number_of_players, game) do
-    build_game(number_of_players - 1, %{game | players: [%{} | game.players]})
-  end
-
-  @spec add_player(Werewolf.Game.t(), Werewolf.Player.t()) :: Werewolf.Game.t()
   def add_player(game, player) do
     %Game{game | players: [player | game.players]}
   end
@@ -62,9 +49,12 @@ defmodule Werewolf.Game do
   end
 
   def werewolf_vote(game, werewolf_uuid, player_uuid) do
-    werewolf = Enum.find(game.players, fn p -> p.uuid == werewolf_uuid end)
+    werewolf = Enum.find(game.players, fn p ->
+      p.uuid == werewolf_uuid && p.role == :werewolf
+    end)
     player = Enum.find(game.players, fn p -> p.uuid == player_uuid end)
     cond do
+      nil == werewolf -> game
       :dead == werewolf.state -> game
       nil == player ->
         votes = Enum.reject(game.werewolf_votes, fn {w, _p} -> w == werewolf_uuid end)
@@ -102,13 +92,13 @@ defmodule Werewolf.Game do
   end
 
   def check_for_eaten(game) do
-    case  werewolves_killed(game) do
+    case werewolves_killed(game) do
       {:ok, player_uuid} -> %Game{game | werewolves_eat: player_uuid}
       _ -> game
     end
   end
 
-  def check_for_end_of_round(game) do
+  def check_for_end_of_night(game) do
     cond do
       seer_has_seen?(game) && doctor_has_healed?(game) && game.werewolves_eat != nil ->
         game
@@ -141,7 +131,11 @@ defmodule Werewolf.Game do
   end
 
   def sunrise(game) do
-    %Game{game | state: :day}
+    %Game{game |
+      state: :day,
+      village_votes: [],
+      villagers_kill: nil
+    }
   end
 
   def seer_has_seen?(game) do
@@ -190,5 +184,98 @@ defmodule Werewolf.Game do
         %Game{ game | seer_sees: player_uuid }
       true -> game
     end
+  end
+
+  def vote(game, villager_uuid, player_uuid) do
+    villager = Enum.find(game.players, fn p -> p.uuid == villager_uuid end)
+    player = Enum.find(game.players, fn p -> p.uuid == player_uuid end)
+    cond do
+      :dead == villager.state -> game
+      nil == player ->
+        votes = Enum.reject(game.village_votes, fn {v, _p} -> v == villager_uuid end)
+        %Game{game | village_votes: votes}
+      :dead == player.state -> game
+      true ->
+        case Enum.count(game.village_votes, fn {v, _p} -> v == villager_uuid end) do
+          0 -> %Game{game | village_votes: [{villager_uuid, player_uuid} | game.village_votes]}
+          _ ->
+            votes = Enum.map(game.village_votes, fn {v, p} ->
+              cond do
+                v == villager_uuid -> {villager_uuid, player_uuid}
+                true -> {v, p}
+              end
+            end)
+            %Game{game | village_votes: votes}
+        end
+    end
+  end
+
+  def village_votes_for(game, player_uuid) do
+    Enum.count(game.village_votes, fn {_, p} -> p == player_uuid end)
+  end
+
+  def check_for_village_kill(game) do
+    case villagers_killed(game) do
+      {:ok, player_uuid} -> %Game{game | villagers_kill: player_uuid}
+      :undecided -> %Game{game | villagers_kill: :undecided}
+      _ -> game
+    end
+  end
+
+  def villagers_killed(game) do
+    allowed_votes = Enum.reject(game.village_votes, fn {v, p} ->
+      voter = Enum.find(game.players, fn f -> f.uuid == v end)
+      player = Enum.find(game.players, fn f -> f.uuid == p end)
+      voter.state == :dead || player.state == :dead
+    end) |> Enum.map(fn {_v, p} -> p end)
+    allowed_voters = Enum.count(game.players, fn p -> p.state != :dead end)
+    majority = Float.floor(allowed_voters/2) + 1
+    cond do
+      Enum.count(allowed_votes) == allowed_voters ->
+        player_uuid = Enum.reduce(game.players, nil, fn player, current_player_uuid ->
+          votes = Enum.count(allowed_votes, fn p -> p == player.uuid end)
+          cond do
+            player.state == :dead -> current_player_uuid
+            votes < majority -> current_player_uuid
+            true -> player.uuid
+          end
+        end)
+        case player_uuid do
+          nil -> :undecided
+          _ -> {:ok, player_uuid}
+        end
+      true -> :voting
+    end
+  end
+
+  def check_for_end_of_day(game) do
+    cond do
+      game.villagers_kill != nil ->
+        game
+          |> kill_player()
+          |> sunset()
+      true -> game
+    end
+  end
+
+  def kill_player(game) do
+    players = Enum.map(game.players, fn p ->
+          cond do
+            p.uuid == game.villagers_kill ->
+              %Player{p | state: :dead}
+            true -> p
+          end
+        end)
+    %Game{game | players: players}
+  end
+
+  def sunset(game) do
+    %Game{ game|
+      state: :night,
+      werewolf_votes: [],
+      doctor_heals: nil,
+      seer_sees: nil,
+      werewolves_eat: nil
+    }
   end
 end

@@ -55,7 +55,9 @@ defmodule WerewolfWeb.GameLive.Show do
 
   @impl true
   def handle_event("begin_game", _params, socket) do
-    game = socket.assigns.game |> Game.begin_game() |> GameStore.save()
+    game = socket.assigns.game
+      |> Game.begin_game()
+      |> GameStore.save()
     {:noreply, assign(socket, game: game, may_join: false)}
   end
 
@@ -64,7 +66,7 @@ defmodule WerewolfWeb.GameLive.Show do
     game = socket.assigns.game
       |> Game.werewolf_vote(session_id, player_id)
       |> Game.check_for_eaten()
-      |> Game.check_for_end_of_round()
+      |> Game.check_for_end_of_night()
       |> Game.check_for_winner()
       |> GameStore.save()
     {:noreply, assign(socket, game: game, may_join: false)}
@@ -73,7 +75,7 @@ defmodule WerewolfWeb.GameLive.Show do
   def handle_event("unmark", %{"session-id" => session_id}, socket) do
     game = socket.assigns.game
       |> Game.werewolf_vote(session_id, nil)
-      |> Game.check_for_end_of_round()
+      |> Game.check_for_end_of_night()
       |> Game.check_for_winner()
       |> GameStore.save()
     {:noreply, assign(socket, game: game, may_join: false)}
@@ -83,7 +85,7 @@ defmodule WerewolfWeb.GameLive.Show do
   def handle_event("protect", %{"session-id" => session_id, "player-id" => player_id}, socket) do
     game = socket.assigns.game
       |> Game.protect(session_id, player_id)
-      |> Game.check_for_end_of_round()
+      |> Game.check_for_end_of_night()
       |> Game.check_for_winner()
       |> GameStore.save()
     {:noreply, assign(socket, game: game, may_join: false)}
@@ -93,7 +95,7 @@ defmodule WerewolfWeb.GameLive.Show do
   def handle_event("divine", %{"session-id" => session_id, "player-id" => player_id}, socket) do
     game = socket.assigns.game
       |> Game.divine(session_id, player_id)
-      |> Game.check_for_end_of_round()
+      |> Game.check_for_end_of_night()
       |> Game.check_for_winner()
       |> GameStore.save()
     {:noreply, assign(socket, game: game, may_join: false)}
@@ -102,69 +104,17 @@ defmodule WerewolfWeb.GameLive.Show do
   @impl true
   def handle_event("vote", %{"session-id" => session_id, "player-id" => player_id}, socket) do
     game = socket.assigns.game
-
-    new_game =
-      %Game{game | village_votes: [{session_id, player_id} | game.village_votes]}
-      |> check_for_end_of_day()
+      |> Game.vote(session_id, player_id)
+      |> Game.check_for_village_kill()
+      |> Game.check_for_end_of_day()
       |> Game.check_for_winner()
-
-    GameStore.save(new_game)
-    {:noreply, assign(socket, game: new_game, may_join: false)}
+      |> GameStore.save()
+    {:noreply, assign(socket, game: game, may_join: false)}
   end
 
   defp list_present(code) do
     Presence.list("game:" <> code)
     # Phoenix Presence provides nice metadata, but we don't need it.
     |> Enum.map(fn {uuid, _} -> uuid end)
-  end
-
-  defp check_for_end_of_day(game) do
-    number_of_villagers = Enum.count(game.players, fn p -> p.state == :alive end)
-    number_of_votes = Enum.count(game.village_votes)
-
-    cond do
-      number_of_villagers == number_of_votes -> kill_werewolf(game)
-      true -> game
-    end
-  end
-
-  defp may_join(_session_id, players) when length(players) == 15, do: false
-  defp may_join(_session_id, []), do: true
-  defp may_join(session_id, [session_id]), do: false
-  defp may_join(session_id, [session_id | _players]), do: false
-  defp may_join(session_id, [_ | players]), do: may_join(session_id, players)
-
-  defp kill_werewolf(game) do
-    votes = game.village_votes
-    tally = Enum.reduce(votes, %{}, fn {_, uuid}, acc -> Map.update(acc, uuid, 1, &(&1 + 1)) end)
-
-    {winner, _} =
-      Enum.reduce(tally, {:a, 0}, fn {k, v}, {acc_k, acc_v} ->
-        cond do
-          v > acc_v -> {k, v}
-          true -> {acc_k, acc_v}
-        end
-      end)
-
-    players =
-      game.players
-      |> Enum.map(fn p ->
-        cond do
-          p.uuid == winner -> Map.put(p, :state, :dead)
-          true -> p
-        end
-      end)
-
-    %Game{
-      game
-      | state: :night,
-        players: players,
-        villagers_kill: winner,
-        werewolves_eat: nil,
-        werewolf_votes: [],
-        village_votes: [],
-        doctor_heals: nil,
-        seer_sees: nil
-    }
   end
 end
