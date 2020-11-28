@@ -13,15 +13,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <%= csrf_meta_tag() %>
     <%= live_title_tag assigns[:page_title] || "Werewolf" %>
-    <link phx-track-static rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Lato:wght@400;900&display=swap" rel="stylesheet"><link phx-track-static rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
     <script defer phx-track-static type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
   </head>
-  <body>
-    <header>
-      <section class="container">
-        <img src="<%= Routes.static_path(@conn, "/images/title.svg") %>">
-      </section>
-    </header>
+  <body class="<%= if @game, do: @game.state %>">
     <%= @inner_content %>
   </body>
 </html>

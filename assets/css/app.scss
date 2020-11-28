@@ -1,98 +1,100 @@
-/* This file is for your main application css. */
-@import "./phoenix.css";
-@import "./game.scss";
-@import "../node_modules/nprogress/nprogress.css";
+@import "meyer_reset.scss";
 
-/* LiveView specific classes for your customizations */
-.phx-no-feedback.invalid-feedback,
-.phx-no-feedback .invalid-feedback {
-  display: none;
+$bg_color_night: #23001E;
+$bg_color_day: #00A7E1;
+$highlight_color: #d69f3a;
+$primary_color: #F8FFF4;
+$secondary_color: #A72608;
+
+body {
+  font-family: sans-serif;
+  font-size: 3vh;
+  text-align: center;
+  padding: 6vh;
+  font-family: "Lato", sans-serif;
+
+
+  h1 {
+    color: $highlight_color;
+    font-size: 3rem;
+  }
+
+  h2 {
+    color: $primary_color;
+    font-size: 2.5rem;
+  }
+
+  h3 {
+    margin-top: 2rem;
+    margin-bottom: 0rem;
+    color: $highlight_color;
+    font-size: 2rem;
+  }
+
+  &.night {
+    background-color: $bg_color_night;
+    color: $primary_color;
+    h1 {
+      color: $highlight_color;
+    }
+
+    h2 {
+      color: $primary_color;
+    }
+
+    h3 {
+      color: $highlight_color;
+    }
+  }
+  &.day {
+    background-color: $bg_color_day;
+    color: $primary_color;
+    h1 {
+      color: $secondary_color;
+    }
+
+    h2 {
+      color: $primary_color;
+    }
+
+    h3 {
+      color: $bg_color_night;
+    }
+  }
 }
 
-.phx-click-loading {
-  opacity: 0.5;
-  transition: opacity 1s ease-out;
+.players {
+  .player-card {
+    .player-avatar {
+      height: 6vh;
+      background-color: $bg_color_day;
+      padding: 1vh;
+      border-radius: 6vh;
+      display: block;
+      margin: auto;
+    }
+    .player-name {
+      display: block;
+      color: $highlight_color;
+      margin: auto;
+    }
+    display: inline-block;
+    margin: 6vh;
+  }
+  &.dead {
+    .player-avatar {
+      background-color: $secondary_color;
+    }
+    .player-name {
+      color: $secondary_color;
+    }
+  }
 }
 
-.phx-disconnected {
-  cursor: wait;
+p {
+  margin-top: 3vh;
 }
 
-.phx-disconnected * {
-  pointer-events: none;
-}
-
-.phx-modal {
-  opacity: 1 !important;
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgb(0, 0, 0);
-  background-color: rgba(0, 0, 0, 0.4);
-}
-
-.phx-modal-content {
-  background-color: #fefefe;
-  margin: 15% auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
-}
-
-.phx-modal-close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
+strong {
   font-weight: bold;
-}
-
-.phx-modal-close:hover,
-.phx-modal-close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-/* Alerts and form errors */
-.alert {
-  padding: 15px;
-  margin-bottom: 20px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-}
-
-.alert-info {
-  color: #31708f;
-  background-color: #d9edf7;
-  border-color: #bce8f1;
-}
-
-.alert-warning {
-  color: #8a6d3b;
-  background-color: #fcf8e3;
-  border-color: #faebcc;
-}
-
-.alert-danger {
-  color: #a94442;
-  background-color: #f2dede;
-  border-color: #ebccd1;
-}
-
-.alert p {
-  margin-bottom: 0;
-}
-
-.alert:empty {
-  display: none;
-}
-
-.invalid-feedback {
-  color: #a94442;
-  display: block;
-  margin: -1rem 0 2rem;
 }

@@ -1,11 +1,15 @@
 <%= if @game.state == :not_started do %>
-  <h1>Join the fun!</h1>
+  <h1>Werewolf</h1>
   <h2>https://werewolf.jobo.dev/games/<%= @game.code %></h2>
-  <h3>Players</h3>
-  <ul>
-  <%= for player <- @game.players do %>
-    <li><%= player.screen_name %></li>
-  <% end %>
+  <ul class="players">
+    <%= for player <- @game.players do %>
+    <li class="player-card">
+      <img id="player1_avatar"
+        class="player-avatar"
+        src="https://avatars.dicebear.com/api/human/<%= player.screen_name %>.svg"/>
+      <label class="player-name"><%= player.screen_name %></label>
+    </li>
+    <% end %>
   </ul>
 <% end %>
 <%= if @game.winner == nil do %>
@@ -28,6 +32,9 @@
   <% end %>
   <%= if @game.state == :day do %>
     <h1>Morning has broken</h1>
+    <%= if @game.werewolves_eat == @game.doctor_heals do %>
+      <p><strong>Someone has been saved!</strong></p>
+    <% end %>
     <p>
       As the sun rises, the village must face the realization that werewolves
       have rampaged throught the village by the light of the full moon.
@@ -48,11 +55,17 @@
 <% end %>
 <%= if @game.state != :not_started do %>
   <h3>Obituaries</h3>
-  <ul>
-  <%= for player <- @game.players do %>
-    <%= if player.state == :dead do %>
-      <li><%= player.screen_name %> was loved an will be missed.</li>
+  <ul class=" dead players">
+    <%= for player <- @game.players do %>
+      <%= if player.state == :dead do %>
+        <li class="player-card">
+          <img id="player1_avatar"
+            class="player-avatar"
+            src="https://avatars.dicebear.com/api/human/<%= player.screen_name %>.svg"/>
+          <label class="player-name"><%= player.screen_name %></label>
+          <%= player.screen_name %> was loved and will be missed.
+        </li>
+      <% end %>
     <% end %>
-  <% end %>
   </ul>
 <% end %>
